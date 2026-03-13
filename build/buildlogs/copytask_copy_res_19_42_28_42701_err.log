@@ -1,0 +1,12 @@
+     [echo] ../src/main/resources,./NoteBook_build_stage/war_dir/WEB-INF/classes,**,
+     [echo] Local build mickey lite pre check not needed.
+     [echo] ----------- NoteBook 1.0 2026 ------------
+     [echo] -----------total time 0.001 sec ------------
+     [echo] copy task param:-copy_res
+     [echo] todir:-./NoteBook_build_stage/war_dir/WEB-INF/classes
+     [echo] srcdir:-../src/main/resources
+     [echo] includes:-**
+     [echo] excludes:-${copy_excludes_match} build/checks.xml
+     [echo] mapper type:-identity
+     [echo] mapper from:-${mapperfrom}
+     [echo] mapper to:-${mapperto}

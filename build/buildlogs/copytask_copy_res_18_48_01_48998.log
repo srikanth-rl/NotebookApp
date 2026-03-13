@@ -1,0 +1,18 @@
+     [echo] ../src/main/resources,./NoteBook_build_stage/war_dir/WEB-INF/classes,**,
+     [echo] Local build mickey lite pre check not needed.
+
+init:
+     [echo] ----------- NoteBook 1.0 2026 ------------
+[stopwatch] [timer1: 0.002 sec]
+     [echo] -----------total time 0.002 sec ------------
+
+copy:
+     [echo] copy task param:-copy_res
+     [echo] todir:-./NoteBook_build_stage/war_dir/WEB-INF/classes
+     [echo] srcdir:-../src/main/resources
+     [echo] includes:-**
+     [echo] excludes:-${copy_excludes_match} build/checks.xml
+     [echo] mapper type:-identity
+     [echo] mapper from:-${mapperfrom}
+     [echo] mapper to:-${mapperto}
+     [copy] Copying 3 files to /home/sri-24601/eclipse-workspace/NoteBook/build/NoteBook_build_stage/war_dir/WEB-INF/classes

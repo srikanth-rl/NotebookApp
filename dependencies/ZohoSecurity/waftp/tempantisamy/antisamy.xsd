@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+	<xsd:element name="anti-samy-rules">
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="include" type="Include" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element name="directives" type="Directives" minOccurs="0"/>
+				<xsd:element name="common-regexps" type="CommonRegexps" minOccurs="0"/>
+				<xsd:element name="common-attributes" type="AttributeList" minOccurs="0"/>
+				<xsd:element name="global-tag-attributes" type="AttributeList" minOccurs="0"/>
+				<xsd:element name="dynamic-tag-attributes" type="AttributeList" minOccurs="0"/>
+				<xsd:element name="tags-to-encode" type="TagsToEncodeList" minOccurs="0"/>
+				<xsd:element name="tag-rules" type="TagRules" minOccurs="0"/>
+				<xsd:element name="css-rules" type="CSSRules" minOccurs="0"/>
+				<xsd:element name="allowed-empty-tags" type="AllowedEmptyTags" minOccurs="0"/>
+				<xsd:element name="require-closing-tags" type="RequireClosingTags" minOccurs="0" />
+			<xsd:element name="require-atkeyframe-css-selectors" type="RequireAtKeyframeCssSelectors" minOccurs="0" />
+	        	<xsd:element name="url-validator" type="URLValidator" minOccurs="0"/>                   
+			</xsd:choice>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="Include">
+		<xsd:attribute name="href" use="required" type="xsd:string"/>
+<xsd:attribute name="description" type="xsd:string"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="Directives">
+		<xsd:sequence maxOccurs="unbounded">
+			<xsd:element name="directive" type="Directive" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Directive">
+		<xsd:attribute name="name" use="required"/>
+		<xsd:attribute name="value" use="required"/>
+<xsd:attribute name="description" type="xsd:string"/>
+		<xsd:attribute name="remove" type="xsd:boolean" />
+	</xsd:complexType>
+
+	<xsd:complexType name="CommonRegexps">
+		<xsd:sequence maxOccurs="unbounded">
+			<xsd:element name="regexp" type="RegExp" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="AttributeList">
+		<xsd:sequence maxOccurs="unbounded">
+			<xsd:element name="attribute" type="Attribute" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="TagsToEncodeList">
+		<xsd:sequence maxOccurs="unbounded">
+			<xsd:element name="tag" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="TagRules">
+		<xsd:sequence maxOccurs="unbounded">
+			<xsd:element name="tag" type="Tag" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Tag">
+		<xsd:sequence maxOccurs="unbounded">
+			<xsd:element name="attribute" type="Attribute" minOccurs="0" />
+<xsd:element name="insert-attribute" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="literal-list"/>
+						<xsd:element name="criteria-attributes" minOccurs="0">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="criteria-attribute">									
+										<xsd:complexType>
+											<xsd:sequence>
+												<xsd:element name="literal-list" />
+											</xsd:sequence>
+											<xsd:attribute name="name" type="xsd:string"/>
+										</xsd:complexType>
+									</xsd:element>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>				
+					<xsd:attribute name="name" type="xsd:string" />
+					<xsd:attribute name="description" type="xsd:string"/>					
+				</xsd:complexType>			
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="name" use="required"/>
+		<xsd:attribute name="action"/>
+		<xsd:attribute name="description" type="xsd:string"/>
+		<xsd:attribute name="remove" type="xsd:boolean" />
+	</xsd:complexType>
+
+    <xsd:complexType name="AllowedEmptyTags">
+        <xsd:sequence>
+            <xsd:element name="literal-list" type="LiteralList" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:complexType name="Attribute">
+		<xsd:all>
+			<xsd:element name="regexp-list" type="RegexpList" minOccurs="0"/>
+			<xsd:element name="literal-list" type="LiteralList" minOccurs="0"/>
+		</xsd:all>
+		<xsd:attribute name="name" use="required"/>
+		<xsd:attribute name="description"/>
+		<xsd:attribute name="onInvalid"/>
+<xsd:attribute name="mandatory" type="xsd:boolean" />
+		<xsd:attribute name="remove" type="xsd:boolean" />
+	</xsd:complexType>
+
+	<xsd:complexType name="RegexpList">
+		<xsd:sequence maxOccurs="unbounded">
+			<xsd:element name="regexp" type="RegExp" minOccurs="0"/>
+		</xsd:sequence>
+<xsd:attribute name="description" type="xsd:string"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="RegExp">
+		<xsd:attribute name="name" type="xsd:string"/>
+		<xsd:attribute name="value" type="xsd:string"/>
+<xsd:attribute name="description" type="xsd:string"/>
+		<xsd:attribute name="remove" type="xsd:boolean" />
+	</xsd:complexType>
+
+	<xsd:complexType name="LiteralList">
+		<xsd:sequence maxOccurs="unbounded">
+			<xsd:element name="literal" type="Literal" minOccurs="0"/>
+		</xsd:sequence>
+<xsd:attribute name="description" type="xsd:string"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="Literal">
+		<xsd:attribute name="value" type="xsd:string"/>
+<xsd:attribute name="remove" type="xsd:boolean" />
+	</xsd:complexType>
+
+	<xsd:complexType name="CSSRules">
+		<xsd:sequence maxOccurs="unbounded">
+			<xsd:element name="property" type="Property" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Property">
+		<xsd:sequence>
+			<xsd:element name="category-list" type="CategoryList" minOccurs="0"/>
+			<xsd:element name="literal-list" type="LiteralList" minOccurs="0"/>
+			<xsd:element name="regexp-list" type="RegexpList" minOccurs="0"/>
+			<xsd:element name="shorthand-list" type="ShorthandList" minOccurs="0"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="default" type="xsd:string"/>
+		<xsd:attribute name="description" type="xsd:string"/>
+<xsd:attribute name="remove" type="xsd:boolean" />
+	</xsd:complexType>
+
+	<xsd:complexType name="ShorthandList">
+		<xsd:sequence maxOccurs="unbounded">
+			<xsd:element name="shorthand" type="Shorthand" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Shorthand">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="CategoryList">
+		<xsd:sequence maxOccurs="unbounded">
+			<xsd:element name="category" type="Category" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Category">
+		<xsd:attribute name="value" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="Entity">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="cdata" type="xsd:string" use="required"/>
+<xsd:attribute name="description" type="xsd:string"/>
+	</xsd:complexType>
+		
+	<xsd:complexType name="RequireClosingTags">
+		<xsd:sequence>
+			<xsd:element name="literal-list" type="LiteralList" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="RequireAtKeyframeCssSelectors">
+		<xsd:sequence>
+			<xsd:element name="literal-list" type="LiteralList" minOccurs="0"/>
+		</xsd:sequence>
+
+	</xsd:complexType>
+	
+	<xsd:complexType name="URLValidator">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:element ref="scheme" />
+			<xsd:element ref="custom-scheme" />
+		</xsd:choice>
+		<xsd:attribute name="name" type='xsd:string' />
+		<xsd:attribute name="mode">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:pattern value="encode|error" />
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="allow-relative-url" type="xsd:boolean" />
+		<xsd:attribute name="max-len" type="xsd:integer" />
+		<xsd:attribute name="datauri-max-len" type="xsd:integer" />
+	</xsd:complexType>
+
+	<xsd:element name="scheme">
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="domainauthority" type="allowedvalues" />
+				<xsd:element name="pathinfo" type="allowedvalues" />
+				<xsd:element name="querystring" type="allowedvalues" />
+				<xsd:element name="fragment" type="allowedvalues" />
+				<xsd:element name="datapart" type="allowedvalues" />
+				<xsd:element name="mimetypes" type="allowedvalues" />
+				<xsd:element name="charsets" type="allowedvalues" />
+				<xsd:element name="encoding" type="allowedvalues" />
+			</xsd:choice>
+			<xsd:attribute name="name" type='xsd:string' />
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="allowedvalues">
+		<xsd:attribute name="allowed-values" type="xsd:string" />
+	</xsd:complexType>
+
+	<xsd:element name="custom-scheme">
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element ref="scheme" />
+				<xsd:element name="domainauthority" type="allowedvalues" />
+				<xsd:element name="pathinfo" type="allowedvalues" />
+				<xsd:element name="querystring" type="allowedvalues" />
+				<xsd:element name="fragment" type="allowedvalues" />
+				<xsd:element name="datapart" type="allowedvalues" />
+				<xsd:element name="mimetypes" type="allowedvalues" />
+				<xsd:element name="charsets" type="allowedvalues" />
+				<xsd:element name="encoding" type="allowedvalues" />
+			</xsd:choice>
+			<xsd:attribute name="name" type='xsd:string' />
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

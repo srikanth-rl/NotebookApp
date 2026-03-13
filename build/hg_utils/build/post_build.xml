@@ -1,0 +1,322 @@
+<!DOCTYPE project [
+<!ENTITY library SYSTEM "./library.xml">
+]>
+
+<project name="build" default="all" basedir=".">
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+    <property environment="env"/>
+    <property file="ant.properties"/>
+
+&library;
+
+<!-- ============================================================================
+       CALLING ALL TARGETS IN ORDER
+     =========================================================================-->
+
+<target name="all">
+<mkdir dir="${basedir}/buildlogs"/>
+<mkdir dir="${build_dir}"/>
+<if>
+     <isset property="target"/>
+     <then>
+        <propertycopy name="build_order" from="${target}_order" silent="true"/>
+     </then>
+     <else>
+        <propertycopy name="build_order" from="local_order" silent="true"/>
+     </else>
+</if>
+
+
+<foreach list="${build_order}"
+                target="calltarget"
+                inheritall="true"
+                param="prop">
+</foreach>
+
+</target>
+
+
+
+
+<!-- ======================================================================
+                                                CALLTARGET  TARGET
+====================================================================== -->
+
+<target name="calltarget">
+
+<propertycopy name="call" from="${prop}_order" silent="true"/>
+<propertycopy name="call_needed" from="${prop}_needed" silent="true"/>
+
+<if>
+        <equals arg1="${call_needed}" arg2="no"/>
+        <then>
+                <echo message="value of ${prop}_needed is No. So ${prop}_order has to be quited"/>
+        </then>
+        <else>
+                <foreach list="${call}"
+                        target="calltask"
+                        inheritall="true"
+                        param="prop">
+                </foreach>
+        </else>
+
+</if>
+
+
+</target>
+
+
+<!-- ======================================================================
+                                                CALLTASK  TARGET
+====================================================================== -->
+
+<target name="calltask">
+        <stopwatch name="${prop}_tasktime" action="start"/>
+<propertyregex property="task"
+               input="${prop}"
+                     regexp="(.*):"
+                                                         select="\1"
+                                       casesensitive="false" />
+
+<propertyregex property="param"
+               input="${prop}"
+                     regexp=":(.*)"
+                                                         select="\1"
+                                       casesensitive="false" />
+
+
+
+<property name="calltask" value="${param}_${task}" />
+<propertycopy name="calltaskneeded" from="${calltask}_needed" silent="true"/>
+<propertycopy name="description" from="${param}_${task}_description" silent="true"/>
+<if>
+        <equals arg1="${calltaskneeded}" arg2="no"/>
+        <then>
+                <echo message="Quitting ${calltask} as it is not needed"/>
+        </then>
+<else>
+
+
+
+
+<if>
+	<equals arg1="${task}" arg2="contextpkgpara"/>
+	<then>
+		<property name="val" value="${param}" />
+		<propertycopy name="context" from="${val}_contextpkg_context" silent="false"/>
+		<propertycopy name="contexthome" from="${val}_contextpkg_home" silent="true"/>
+		<propertycopy name="excludefiles" from="${val}_contextpkg_excludes" silent="true"/>
+		<antcall target="contextpkgpara"/> 
+
+	</then>
+		
+</if>
+
+
+<if>
+        <or>
+        <equals arg1="${task}" arg2="compilesrc"/>
+        <equals arg1="${task}" arg2="jspcompilation"/>
+        <equals arg1="${task}" arg2="srccompile"/>
+        </or>
+        <then>
+
+        <antcall target="postbuild"/> 
+        </then>
+</if>
+
+<tstamp>
+        <format property="end.time" pattern="hh:mm:ss aa" />
+</tstamp>
+
+<propertycopy name="total_param_time" from="${param}_time" silent="true"/>
+
+
+</else>
+</if>
+
+
+
+
+</target>
+
+<target name="postbuild">
+
+        <if>
+        <or>
+        <equals arg1="${task}" arg2="compilesrc"/>
+        <equals arg1="${task}" arg2="srccompile"/>
+        </or>
+        <then>
+        <property name="destdir" value="${basedir}/src_compile_tmp_${param}_post" />
+	
+	<property name="val" value="${param}" />
+
+
+        <if>
+        <equals arg1="${task}" arg2="compilesrc"/>
+        <then>
+
+
+	
+	<propertycopy name="source_dir" from="${val}_compile_srcdir" silent="true"/>
+	 <propertycopy name="compilesrczip_needed" from="${val}_compile_srczipneeded" silent="true"/>
+
+	<if>
+	   <isset property="source_dir"/>
+	    <then>
+	    <property name="compile_srcdir" value="${source_dir}"/>
+	     </then>
+	    <else>
+	         <property name="compile_srcdir" value="${source_basedir}"/>
+	    </else>
+	   </if>
+
+
+        <propertycopy name="pkgincludes" from="${val}_compile_includes" silent="true"/>
+        <propertycopy name="pkgexcludes" from="${val}_compile_excludes" silent="true"/>
+
+<if><equals arg1="${compilesrczip_needed}" arg2="false"/>
+<then>
+<echo message="compilesrc source copy not needed ."/>
+</then>
+<else>
+
+
+        <antcall target="copy">
+                <param name="val" value="${val}"/>
+                <param name="${val}_copy_todir" value="${destdir}"/>
+                <param name="${val}_fileset_dir" value="${compile_srcdir}"/>
+                <param name="${val}_copy_includes" value="${pkgincludes}"/>
+                <param name="${val}_copy_excludes" value="${pkgexcludes}"/>
+        </antcall>
+</else>
+</if>
+
+</then>
+</if>
+
+
+        <if>
+        <equals arg1="${task}" arg2="srccompile"/>
+        <then>
+
+	<propertycopy name="compilesrcdir" from="${val}_srccompile_srcdir" silent="true"/>
+	 <propertycopy name="javasrczip_needed" from="${val}_srccompile_javasrczipneeded" silent="true"/>
+
+	<if>
+           <isset property="compilesrcdir"/>
+           <then>
+                  <property name="compile_srcdir" value="${compilesrcdir}"/>
+           </then>
+          <else>
+               <property name="compile_srcdir" value="${source_basedir}"/>
+          </else>
+        </if>
+	
+        <propertycopy name="srcpkgincludes" from="${val}_srccompile_includes" silent="true"/>
+        <propertycopy name="srcpkgincludes" from="${val}_srccompile_includes" silent="true"/>
+
+
+<if><equals arg1="${javasrczip_needed}" arg2="false"/>
+<then>
+	<echo message="srcompile source copy and zip  needed ."/>
+</then>
+<else>
+
+        <antcall target="copy">
+                <param name="val" value="${val}"/>
+                <param name="${val}_copy_todir" value="${destdir}"/>
+                <param name="${val}_fileset_dir" value="${compile_srcdir}"/>
+                <param name="${val}_copy_includes" value="${srcpkgincludes}"/>
+                <param name="${val}_copy_excludes" value="${srcpkgexcludes}"/>
+        </antcall>
+
+</else>
+</if>
+
+        </then>
+        </if>
+
+
+	    
+	     <path id="sec_tem_dir">
+             <fileset dir="${basedir}/src_compile_tmp_${val}_post/"/>
+             </path>
+             <property name="tmpproperty" refid="sec_tem_dir"/>                                                    
+	
+	    <condition property="emptydirflag">
+            <equals arg1="${tmpproperty}" arg2=""/>
+            </condition>
+            <if><equals arg1="${javasrczip_needed}" arg2="false"/>
+            <then>
+                    <echo message="source copy not needed ."/>
+            </then>
+            <else>
+            <if>
+                  <isset property="emptydirflag"/>
+                  <then>
+                  <echo>Source Directory  is empty</echo>
+                 </then>
+
+           <else>
+		 <if><equals arg1="${compilesrczip_needed}" arg2="false"/>
+  	          <then>
+	          <echo message="compilesrczip not needed ."/>
+	         </then>
+	          <else>
+
+                  <antcall target="ziptask">
+                  <param name="${val}_zip_name" value="${basedir}/java_jsp_source.zip"/>
+                  <param name="${val}_execdir" value="${basedir}/src_compile_tmp_${val}_post"/>
+                   <param name="${val}_dir_tozip" value="."/>
+                   <param name="${val}_zip_exclude" value=""/>
+                  </antcall>
+
+		</else>
+		</if>
+           </else>
+           </if>
+         
+         </else>
+         </if>
+
+
+        </then>
+        </if>
+
+
+        <if>
+        <equals arg1="${task}" arg2="jspcompilation"/>
+        <then>
+
+           <property name="val" value="${param}" />
+           <propertycopy name="srcdir" from="${val}_jspcompilation_jspsrcdir" silent="false"/>
+	   <propertycopy name="jspsrczip_needed" from="${val}_jspcompilation_jspsrczipneeded" silent="true"/>
+
+           <property name="jsp_todir" value="${build_dir}/jspcompilation"/>
+           <basename property="jsptodirname" file="${srcdir}"/>
+	    <if><equals arg1="${jspsrczip_needed}" arg2="false"/>
+
+	    <then>
+	            <echo message="jsp_java source zip not needed ."/>
+	            </then>
+	            <else>
+
+
+            <antcall target="ziptask">
+                <param name="val" value="${param}"/>
+                <param name="${val}_zip_name" value="${basedir}/java_jsp_source.zip"/>
+                <param name="${val}_execdir" value="${jsp_todir}/${jsptodirname}_java"/>
+                <param name="${val}_dir_tozip" value="."/>
+                <param name="${val}_zip_exclude" value=""/>
+            </antcall>
+
+	</else>
+	</if>
+        </then>
+        </if>
+
+</target>
+
+</project>

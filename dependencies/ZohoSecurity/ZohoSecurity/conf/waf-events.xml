@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eventframework package="com.zoho.security.eventfw.pojos">
+
+	<events transfer-api="SinglePointLogger">
+		<event name="ghostcat_vulnerability" severity="5" data-template="ghostcat_dt" />
+		<event name="secret_param_in_querystring" severity="2" data-template="rpdp_dt" />
+		<event name="malware_detection" severity="5" data-template="malwarescandt"  transfer-api="ZohoLogs"  />
+		<event name="service_malware_detection" severity="5" data-template="zm_malwarescandt" transfer-api="ZohoLogs" />	
+	</events>
+
+	<logs transfer-api="SinglePointLogger">
+		<!-- Request Info Log -->
+		<log name="request_info" caller-inferrer="monitor-cls-only" transfer-api="ZSecAccessLogs" data-template="reqres_info" />
+
+		<log name="waf_config_lookup_problem" severity="2">
+			<sub-type name="rq_and_ss_wc_mismatch" data-template="rasrum_dt" />
+			<sub-type name="rq_wc_not_found" data-template="rurn_dt" />
+			<sub-type name="ss_wc_not_found" data-template="srurn_dt" />
+		</log>
+		<log name="servlet_std_attribute_misuse" severity="2" data-template="rav_dt">
+			<sub-type name="err_attr_notset_in_err_rq" data-template="pathtype_dt" />
+			<sub-type name="fwd_attr_set_in_rq" />
+			<sub-type name="inc_attr_set_in_rq" />
+			<sub-type name="async_attr_set_in_rq" />
+		</log>
+		<log name="getting_urlencoded_params_as_inputstream" severity="2" data-template="iup_dt" />
+		<log name="invalid_dispatcher_uri" severity="2" data-template="rdcv_dt" />
+		<log name="regex_match_threshold_exceeded" severity="2" transfer-api="ZohoLogs" data-template="redos_dt" />
+		<log name="exception_in_enabling_samesite_for_csrf_cookie" severity="2" data-template="samesite_dt" />
+		<log name="invalid_clickjacking_prevention" severity="2" data-template="xfo_dt" />
+		<log name="unvalidated_param" caller-inferrer="disable" severity="2">
+			<sub-type name="err_rq" data-template="uepa_dt" />
+		</log>
+		<log name="unvalidated_body" severity="2" data-template="sisc_dt" />
+
+		<!-- Anomaly Logs -->
+		<log name="performance_anomaly" transfer-api="SinglePointLogger">
+			<sub-type name="url_validation" data-template="uv_dt" dispatcher-template="200msTimer" />
+			<sub-type name="regex_matches" data-template="regex_dt" dispatcher-template="5msTimer" />
+			<sub-type name="xss_validation" data-template="xssvalidation_dt" dispatcher-template="5msTimer" />
+			<sub-type name="mime_detection" data-template="mimedetection_dt" dispatcher-template="5msTimer" />
+			<sub-type name="av_scan" data-template="avscandt" dispatcher-template="75msTimer" />
+			<sub-type name="req_header_validation" data-template="reqh_dt" dispatcher-template="10msTimer" />
+			<sub-type name="urlrule_validation" data-template="uv_dt" dispatcher-template="100msTimer" />
+			<sub-type name="authentication" data-template="uv_dt" dispatcher-template="100msTimer" />
+			<sub-type name="live_throttle" data-template="uv_dt" dispatcher-template="50msTimer" />
+			<sub-type name="control_dos" data-template="uv_dt" dispatcher-template="50msTimer" />
+		</log>
+		<log name="exception_anomaly" transfer-api="ZohoLogs">
+			<sub-type name="anomalous_exception" data-template="exception_metrics" />
+		</log>
+		<log name="consumption_anomaly" transfer-api="ZohoLogs">
+			<sub-type name="file_upload_disk_consumption_alert" data-template="fu_diskcons_dt" />
+		</log>
+
+		<log name="access_decryptparam_via_getparameter" data-template="decrypt_param_access"/>
+	</logs>
+
+	<transfer-apis>
+		<transfer-api name="ZSecZohoLogs" impl="com.zoho.security.eventfwimpl.ZSecZohoLogsImplProvider">
+			<type type="default" value="zsecevents" />
+		</transfer-api>
+		<transfer-api name="SinglePointLogger" impl="com.zoho.security.eventfwimpl.ZSecSinglePointLoggerImplProvider" />
+		<transfer-api name="ZSecAccessLogs" impl="com.zoho.security.eventfwimpl.ZSecAccessLogsCustomFieldsImplProvider" />
+		<!-- <transfer-api name="AppsenseAPI" impl="com.zoho.security.eventfwimpl.AppSenseLogImplProvider" /> -->
+	</transfer-apis>
+
+	<dispatcher-templates>
+
+		<dispatcher-template name="BatchTemplate" type="batch">
+			<threshold type="time" value="10m" />
+			<threshold type="count" value="200" />
+		</dispatcher-template>
+		<dispatcher-template name="5msTimer" type="timer">
+			<threshold type="execution_time" value="5" />
+		</dispatcher-template>
+		<dispatcher-template name="10msTimer" type="timer">
+			<threshold type="execution_time" value="10" />
+		</dispatcher-template>
+		<dispatcher-template name="20msTimer" type="timer">
+			<threshold type="execution_time" value="20" />
+		</dispatcher-template>
+		<dispatcher-template name="50msTimer" type="timer">
+			<threshold type="execution_time" value="50" />
+		</dispatcher-template>
+		<dispatcher-template name="75msTimer" type="timer">
+			<threshold type="execution_time" value="75" />
+		</dispatcher-template>
+		<dispatcher-template name="100msTimer" type="timer">
+			<threshold type="execution_time" value="100" />
+		</dispatcher-template>
+		<dispatcher-template name="200msTimer" type="timer">
+			<threshold type="execution_time" value="200" />
+		</dispatcher-template>
+	</dispatcher-templates>
+
+	<data-templates>
+		<builtin-fields impl="com.zoho.security.eventfwimpl.ZSecBuiltInFieldsImplProvider">
+			<data-template name="log_id_dt">
+				<field name="log_id" type="String" />
+			</data-template>
+			<data-template name="user_dt">
+				<field name="user_zuid" type="String" />
+			</data-template>
+			<data-template name="remote_ip_dt">
+				<field name="remote_ip" type="String" />
+			</data-template>
+			<data-template name="client_dt">
+				<field name="client" type="String" />
+			</data-template>
+			<!--  Current Request BuiltIn Fields -->
+			<data-template name="wa_rq_uri">
+				<field name="uri" type="String" />
+			</data-template>
+			<data-template name="wa_rq_method">
+				<field name="method" type="String" />
+			</data-template>
+			<data-template name="wa_ss_servlet_path">
+				<field name="ss_servlet_path" type="String" />
+			</data-template>
+			<data-template name="wa_ss_path_info">
+				<field name="ss_path_info" type="String" />
+			</data-template>
+			<data-template name="wa_wc_uri_prefix">
+				<field name="wc_uri_prefix" type="String" />
+			</data-template>
+			<data-template name="wa_wc_uri">
+				<field name="wc_uri" type="String" />
+			</data-template>
+			<data-template name="wa_wc_method">
+				<field name="wc_method" type="String" />
+			</data-template>
+			<data-template name="wa_wc_operation">
+				<field name="wc_operation" type="String" />
+			</data-template>
+			<data-template name="referrer_dt">
+				<field name="referrer" type="String" />
+			</data-template>
+			<data-template name="user_agent_dt">
+				<field name="user_agent" type="String" />
+			</data-template>
+		</builtin-fields>
+		<data-template name="rid_timetaken_dt">
+			<field ref="log_id_dt" />
+			<field ref="timetaken_dt" />
+		</data-template>
+		<data-template name="user_context_dt">
+			<field ref="user_dt" />
+			<field ref="remote_ip_dt" />
+		</data-template>
+
+		<data-template name="malwarescandt">
+					<field ref="rid_timetaken_dt" />
+					<field ref="user_context_dt"/>
+					<field ref="wa_rq_uri" />
+					<field ref="wa_rq_method" />
+					<field ref="referrer_dt" />
+					<field ref="user_agent_dt" />
+					<field name="filename" type="String" />
+					<field name="detectedVirusName" type="String" />
+					<field name="dtmimetype" type="String" />
+					<field name="exception" type="String" />
+		</data-template>
+
+		<data-template name="zm_malwarescandt">			
+					<field name="log_id" type="String" />
+					<field name="time-taken" type="long" />
+					<field name="user_zuid" type="String" />
+					<field name="uri" type="String" />
+					<field name="method"  type="String" />
+					<field name="remote_ip" type="String" />
+					<field name="referrer" type="String"   />
+					<field name="user_agent"  type="String"  />
+					<field name="filename" type="String" />
+					<field name="detectedVirusName" type="String" />
+					<field name="dtmimetype" type="String" />
+					<field name="exception" type="String" />
+		</data-template>
+		<!-- Debug Info data templates -->
+
+		<data-template name="rurn_dt">
+			<field ref="log_id_dt" />
+			<field ref="uri" />
+			<field name="ss_uri" type="String" />
+			<field ref="wc_uri" />
+			<field ref="ss_servlet_path" />
+			<field ref="ss_path_info" />
+		</data-template>
+		<data-template name="srurn_dt">
+			<field ref="log_id_dt" />
+			<field ref="uri" />
+			<field ref="wc_uri" />
+			<field name="ss_uri" type="String" />
+			<field ref="ss_servlet_path" />
+			<field ref="ss_path_info" />
+		</data-template>
+		<data-template name="rasrum_dt">
+			<field ref="log_id_dt" />
+			<field ref="uri" />
+			<field ref="wc_uri" />
+			<field name="ss_uri" type="String" />
+			<field name="wc_ss_uri" type="String" />
+			<field ref="ss_servlet_path" />
+			<field ref="ss_path_info" />
+		</data-template>
+		<data-template name="iup_dt">
+			<field ref="log_id_dt" />
+			<field ref="uri" />
+			<field ref="unique_fields_dt" />
+		</data-template>
+		<data-template name="ghostcat_dt">
+			<field ref="iup_dt" />
+			<field ref="ss_context_dt"/>
+			<field ref="ss_attributes" />
+		</data-template>
+		<data-template name="xfo_dt">
+			<field ref="log_id_dt" />
+			<field ref="wa_rq_uri" />
+			<field ref="wa_wc_uri_prefix" />
+			<field ref="wa_wc_uri" />
+			<field ref="wa_wc_method" />
+			<field ref="wa_wc_operation" />
+			<field ref="user_context_dt" />
+			<field ref="referrer" />
+			<field ref="user_agent" />
+			<field name="browser_name" type="String"/>
+			<field name="browser_version" type="int"/>
+		</data-template>
+		<data-template name="redos_dt">
+			<field ref="log_id_dt" />
+			<field ref="wa_rq_uri" />
+			<field ref="wa_wc_uri_prefix" />
+			<field ref="wa_wc_uri" />
+			<field ref="wa_wc_method" />
+			<field ref="wa_wc_operation" />
+			<field ref="user_context_dt" />
+			<field name="wc_regex_pattern" type="String" />
+			<field name="value_used_in_match" type="CharSequence" />
+			<field name="violation_type" type="String" />
+			<field name="wc_timeout_max" type="long" />
+			<field name="wc_iter_max" type="long" />
+			<field name="timetaken" type="long" />
+			<field name="iter_count" type="long" />
+			<!-- <field ref="callee_info_dt" /> --> <!--  Callee Info for pattern matcher will affect the performance due to recursive method matcher -->
+		</data-template>
+		<data-template name="pathtype_dt">
+			<field ref="iup_dt" />
+			<field ref="ss_rq_type" />
+		</data-template>
+		<data-template name="rpdp_dt"> <!-- request_uri, path, dispatcher_type, param (rpdp) :D -->
+			<field ref="pathtype_dt" />
+			<field ref="method" />
+			<field ref="override_method" />
+			<field ref="origin" />
+			<field ref="user_agent" />
+			<field ref="client_dt" />
+			<field ref="param_names" />
+		</data-template>
+		<data-template name="uepa_dt">
+			<field ref="iup_dt" />
+			<field ref="param_name" />
+			<field ref="callee_info_dt" />
+			<field ref="er_uri" />
+		</data-template>
+		<data-template name="sisc_dt">
+			<field ref="iup_dt" />
+			<field ref="callee_info_dt" />
+		</data-template>
+		<data-template name="samesite_dt">
+			<field ref="iup_dt" />
+			<field ref="user_context_dt" />
+			<field ref="method" />
+			<field ref="referrer" />
+			<field ref="user_agent" />
+		</data-template>
+		<data-template name="rav_dt">
+			<field ref="iup_dt" />
+			<field ref="ss_context_dt" />
+			<field ref="ss_attr_name" />
+			<field ref="callee_info_dt" />
+		</data-template>
+		<data-template name="rdcv_dt">
+			<field ref="iup_dt" />
+			<field ref="ss_context_dt" />
+			<field ref="ss_dispatcher_uri" />
+			<field ref="wc_dispatcher_uri" />
+			<field ref="user_context_dt" />
+			<field ref="callee_info_dt" />
+		</data-template>
+
+		<!-- Anomaly data templates -->
+		<data-template name="uv_dt">
+			<field ref="rid_timetaken_dt" />
+			<field ref="uri" />
+		</data-template>
+		<data-template name="regex_dt">
+			<field ref="uv_dt" />
+			<field name="param" type="String" />
+			<field name="regex" type="String" />
+			<field name="exception" type="String" />
+		</data-template>
+		<data-template name="xssvalidation_dt">
+			<field ref="uv_dt" />
+			<field name="param" type="String" />
+			<field name="filter" type="String" />
+			<field name="exception" type="String" />
+		</data-template>
+		<data-template name="mimedetection_dt">
+			<field ref="uv_dt" />
+			<field name="filename" type="String" />
+			<field name="dtmimetype" type="String" />
+		</data-template>
+		<data-template name="avscandt">
+			<field ref="uv_dt" />
+			<field name="filename" type="String" />
+			<field name="detectedVirusName" type="String" />
+			<field name="dtmimetype" type="String" />
+			<field name="exception" type="String" />
+		</data-template>
+		<data-template name="reqh_dt">
+			<field ref="uv_dt" />
+			<field name="headers" type="String" />
+			<field name="cookies" type="String" />
+		</data-template>
+		<data-template name="exception_metrics">
+			<field ref="log_id_dt" />
+			<field name="error_code" type="String" />
+			<field name="cause" type="String" />
+			<field name="remote_ip" type="String" />
+			<field name="status" type="int" />
+			<field name="user_agent" type="String" />
+		</data-template>
+		<data-template name="performance_metrics">
+			<field name="module" type="String" />
+			<field name="req_id" type="String" />
+			<field name="key" type="String" />
+			<field name="elapsed_time" type="long" />
+			<field name="metrics" type="Map&lt;String,Object&gt;" />
+		</data-template>
+		<data-template name="fu_diskcons_dt">
+			<field ref="host_dt" />
+			<field name="folder_dir" type="String" />
+			<field name="total_disk_size" type="long" />
+			<field name="available_disk_size" type="long" />
+			<field name="used_disk_size" type="long" />
+			<field name="folder_size" type="long" />
+			<field name="threshold_size" type="long" />
+		</data-template>
+
+		<!-- Statistic event data templates -->
+		<data-template name="file_stats">
+			<field name="filetype" type="String" />
+		</data-template>
+		<data-template name="exception_stats">
+			<field name="exception_name" type="String" />
+		</data-template>
+
+		<!-- Events data templates -->
+
+		<data-template name="param">
+			<field name="param" type="String" />
+		</data-template>
+		<data-template name="makedirectory">
+			<field ref="message" />
+			<field name="userhome" type="String" />
+		</data-template>
+		<data-template name="cookie_info">
+			<field ref="log_id_dt" />
+			<field ref="uri" />
+			<field name="ar_path" type="String" />
+		</data-template>
+		<data-template name="csrf_stats">
+			<field ref="log_id_dt" />
+			<field name="len" type="int" />
+		</data-template>
+		<data-template name="reqres_info">
+			<field name="reqInfo" type="Map&lt;String,Object&gt;" />
+			<field name="resInfo" type="Map&lt;String,Object&gt;" />
+		</data-template>
+		<data-template name="message">
+			<field ref="log_id_dt" />
+			<field name="message" type="String" />
+		</data-template>
+		<data-template name="decrypt_param_access">
+			<field ref="iup_dt" />
+			<field ref="param_name" />
+			<field ref="callee_info_dt" />
+		</data-template>
+	</data-templates>
+</eventframework>

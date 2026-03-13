@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data-dictionary name="NoteBook">
+
+    <table name="user">
+        <columns>
+            <column name="id">
+                <data-type>BIGINT</data-type>
+                <nullable>false</nullable>
+                <unique-value-generation><generator>UVG</generator></unique-value-generation>
+            </column>
+            <column name="display_name"><data-type>CHAR</data-type><max-size>255</max-size><nullable>false</nullable></column>
+            <column name="status"><data-type>CHAR</data-type><max-size>50</max-size><default-value>PENDING</default-value></column>
+            <column name="timezone"><data-type>CHAR</data-type><max-size>255</max-size><default-value>Asia/Kolkata</default-value></column>
+            <column name="created_at"><data-type>BIGINT</data-type></column>
+            <column name="updated_at"><data-type>BIGINT</data-type></column>
+        </columns>
+        <primary-key name="user_pk"><column name="id"/></primary-key>
+    </table>
+
+    <table name="user_emails">
+        <columns>
+            <column name="id">
+                <data-type>BIGINT</data-type>
+                <nullable>false</nullable>
+                <unique-value-generation><generator>UVG</generator></unique-value-generation>
+            </column>
+            <column name="user_id"><data-type>BIGINT</data-type><nullable>false</nullable></column>
+            <column name="email"><data-type>CHAR</data-type><max-size>255</max-size><nullable>false</nullable></column>
+            <column name="is_verified"><data-type>BOOLEAN</data-type><default-value>false</default-value></column>
+        </columns>
+        <primary-key name="user_emails_pk"><column name="id"/></primary-key>
+        <foreign-keys>
+            <foreign-key name="fk_email_user" reference-table-name="user" local-table-name="user_emails">
+                <fk-columns><fk-column name="user_id" reference-column-name="id"/></fk-columns>
+            </foreign-key>
+        </foreign-keys>
+    </table>
+
+    <table name="notebooks">
+        <columns>
+            <column name="id">
+                <data-type>BIGINT</data-type>
+                <nullable>false</nullable>
+                <unique-value-generation><generator>UVG</generator></unique-value-generation>
+            </column>
+            <column name="title"><data-type>CHAR</data-type><max-size>255</max-size></column>
+            <column name="owner_type"><data-type>CHAR</data-type><max-size>50</max-size><nullable>false</nullable></column>
+            <column name="owner_id"><data-type>BIGINT</data-type><nullable>false</nullable></column>
+            <column name="created_by"><data-type>BIGINT</data-type></column>
+            <column name="updated_by"><data-type>BIGINT</data-type></column>
+            <column name="created_at"><data-type>BIGINT</data-type></column>
+            <column name="updated_at"><data-type>BIGINT</data-type></column>
+        </columns>
+        <primary-key name="notebooks_pk"><column name="id"/></primary-key>
+    </table>
+
+    <table name="notes">
+        <columns>
+            <column name="id">
+                <data-type>BIGINT</data-type>
+                <nullable>false</nullable>
+                <unique-value-generation><generator>UVG</generator></unique-value-generation>
+            </column>
+            <column name="notebook_id"><data-type>BIGINT</data-type><nullable>false</nullable></column>
+            <column name="title"><data-type>CHAR</data-type><max-size>255</max-size></column>
+            <column name="content"><data-type>SVALTEXT</data-type></column>
+            <column name="is_pinned"><data-type>BOOLEAN</data-type><default-value>false</default-value></column>
+            <column name="created_by"><data-type>BIGINT</data-type></column>
+            <column name="updated_by"><data-type>BIGINT</data-type></column>
+            <column name="created_at"><data-type>BIGINT</data-type></column>
+            <column name="updated_at"><data-type>BIGINT</data-type></column>
+        </columns>
+        <primary-key name="notes_pk"><column name="id"/></primary-key>
+        <foreign-keys>
+            <foreign-key name="fk_note_notebook" reference-table-name="notebooks" local-table-name="notes">
+                <fk-columns><fk-column name="notebook_id" reference-column-name="id"/></fk-columns>
+            </foreign-key>
+        </foreign-keys>
+    </table>
+
+    <table name="user_password">
+        <columns>
+            <column name="user_id"><data-type>BIGINT</data-type><nullable>false</nullable></column>
+            <column name="password_hash"><data-type>CHAR</data-type><max-size>255</max-size><nullable>false</nullable></column>
+            <column name="salt"><data-type>CHAR</data-type><max-size>255</max-size></column>
+            <column name="updated_at"><data-type>BIGINT</data-type></column>
+        </columns>
+        <primary-key name="user_password_pk"><column name="user_id"/></primary-key>
+    </table>
+
+    <table name="user_phones">
+        <columns>
+            <column name="id">
+                <data-type>BIGINT</data-type>
+                <nullable>false</nullable>
+                <unique-value-generation><generator>UVG</generator></unique-value-generation>
+            </column>
+            <column name="user_id"><data-type>BIGINT</data-type><nullable>false</nullable></column>
+            <column name="phone_number"><data-type>CHAR</data-type><max-size>20</max-size><nullable>false</nullable></column>
+            <column name="is_verified"><data-type>BOOLEAN</data-type><default-value>false</default-value></column>
+        </columns>
+        <primary-key name="user_phones_pk"><column name="id"/></primary-key>
+    </table>
+
+    <table name="user_sessions">
+        <columns>
+            <column name="id">
+                <data-type>BIGINT</data-type>
+                <nullable>false</nullable>
+                <unique-value-generation><generator>UVG</generator></unique-value-generation>
+            </column>
+            <column name="user_id"><data-type>BIGINT</data-type><nullable>false</nullable></column>
+            <column name="session_token"><data-type>CHAR</data-type><max-size>255</max-size><nullable>false</nullable></column>
+            <column name="expires_at"><data-type>BIGINT</data-type><nullable>false</nullable></column>
+        </columns>
+        <primary-key name="user_sessions_pk"><column name="id"/></primary-key>
+    </table>
+
+    <table name="audit_logs">
+        <columns>
+            <column name="id">
+                <data-type>BIGINT</data-type>
+                <nullable>false</nullable>
+                <unique-value-generation><generator>UVG</generator></unique-value-generation>
+            </column>
+            <column name="user_id"><data-type>BIGINT</data-type></column>
+            <column name="action"><data-type>CHAR</data-type><max-size>255</max-size><nullable>false</nullable></column>
+            <column name="entity_type"><data-type>CHAR</data-type><max-size>50</max-size></column>
+            <column name="entity_id"><data-type>BIGINT</data-type></column>
+            <column name="details"><data-type>SVALTEXT</data-type></column>
+            <column name="created_at"><data-type>BIGINT</data-type></column>
+        </columns>
+        <primary-key name="audit_logs_pk"><column name="id"/></primary-key>
+    </table>
+
+    <table name="system_configs">
+        <columns>
+            <column name="id">
+                <data-type>BIGINT</data-type>
+                <nullable>false</nullable>
+                <unique-value-generation><generator>UVG</generator></unique-value-generation>
+            </column>
+            <column name="config_key"><data-type>CHAR</data-type><max-size>255</max-size><nullable>false</nullable></column>
+            <column name="config_value"><data-type>SVALTEXT</data-type></column>
+        </columns>
+        <primary-key name="system_configs_pk"><column name="id"/></primary-key>
+    </table>
+
+</data-dictionary>

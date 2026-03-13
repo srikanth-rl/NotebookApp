@@ -1,0 +1,10 @@
+     [echo] ./NoteBook_build_stage/ROOT.war,/home/sri-24601/IAM_LOCAL/appserver_container/AdventNet/Sas/tomcat/webapps/ROOT.war
+     [echo] Local build mickey lite pre check not needed.
+
+init:
+     [echo] ----------- NoteBook 1.0 2026 ------------
+[stopwatch] [timer1: 0.001 sec]
+     [echo] -----------total time 0.001 sec ------------
+
+copyfile:
+     [copy] Copying 1 file to /home/sri-24601/IAM_LOCAL/appserver_container/AdventNet/Sas/tomcat/webapps

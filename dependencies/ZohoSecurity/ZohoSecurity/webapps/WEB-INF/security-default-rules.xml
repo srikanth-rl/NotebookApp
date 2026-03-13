@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<security xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="security.xsd">
+
+	<exceptions>
+	
+		<exception name="URL_RULE_NOT_CONFIGURED" status-code="404" status-message="Not Found"/>
+		
+		<exception name="UPLOAD_RULE_NOT_CONFIGURED" status-code="404" status-message="Not Found"/>
+		
+		<exception name="NOT_AUTHENTICATED" status-code="401" status-message="Unauthorized"/>
+		
+		<exception name="AUTHENTICATION_FAILED" status-code="401" status-message="Unauthorized"/>
+		
+		<exception name="INVALID_OAUTHTOKEN" status-code="401" status-message="Unauthorized"/>
+		
+		<exception name="INVALID_OAUTHSCOPE" status-code="401" status-message="Unauthorized"/>
+		
+		<exception name="UNAUTHORISED" status-code="403" status-message="Forbidden"/>		
+	
+	</exceptions>
+
+</security>

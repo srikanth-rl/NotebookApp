@@ -1,0 +1,1467 @@
+import org.jdom2.Element;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Arrays;
+import java.util.regex.Pattern;
+public class conditions {
+	
+	boolean isCSRFCheckRemovedForGetMethod = false;
+	String errorMessage = null;
+	String securityFilterClsName = null;
+	String webFragmentName = null;
+	List<String> antisamyList = new ArrayList<String>();
+	Pattern typePattern = Pattern.compile("JSONObject|JSONArray|JSONObject\\|JSONArray|url");
+	Pattern regexPattern = Pattern.compile("JSONObject|JSONArray|JSONObject\\|JSONArray");
+	public List<String> customMethodList = new ArrayList<String>();
+	public List<String> securityFilterOrder = new ArrayList<String>();
+	Map<String, String> propertiesMap = new HashMap<String, String>();
+	public List<String> secretParamList = new ArrayList<String>();
+
+	//Util methods
+	
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage =  errorMessage;
+	}
+	
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+	
+	public void setAntisamyList(List<String> antisamyList) {
+		this.antisamyList = antisamyList;
+	}
+	
+	public List<String> getAntisamyList() {
+		return antisamyList;
+	}
+
+	public void setSecurityFilterClsName(String securityFilterClsName){
+		this.securityFilterClsName = securityFilterClsName;
+	}
+	
+	public String getSecurityFilterClsName(){
+		return securityFilterClsName;
+	}
+
+	public void setPropertiesMap(Map<String, String> propertiesMap) {
+ 		this.propertiesMap = propertiesMap;
+ 	}
+ 	
+ 	public Map<String, String> getPropertiesMap() {
+ 		return propertiesMap;
+ 	}
+ 	
+ 	public String getPropertyValue(String propertyName) {
+ 		return propertiesMap.get(propertyName);
+ 	}
+ 	
+ 	public void populatePropertyDetails() {
+ 		customMethodList.addAll(Arrays.asList("get","post","put","delete","options","patch"));
+		secretParamList.addAll(Arrays.asList("ticket","iscticket","iscsignature","authtoken","x-zcsrf-token","authorization",
+				"password","loginpassword","current","newp","invoker_method","pwd","cpwd"));
+ 		isCSRFCheckRemovedForGetMethod	= "true".equals(getPropertyValue("disable.get.api.csrf.check"));
+ 		if(getPropertyValue("custom.request.methods") != null) {
+ 			customMethodList.addAll(Arrays.asList(getPropertyValue("custom.request.methods").toLowerCase().split(",")));
+ 		}
+ 	}
+	
+	public void setWebFragmentName(String webFragmentName){
+		this.webFragmentName = webFragmentName;
+	}
+	
+	public String getWebFragmentName(){
+		return webFragmentName;
+	}
+
+	public void addSecurityFilterOrder(List<String> filterOrder) {
+		for(String filter : filterOrder) {
+			if(!securityFilterOrder.contains(filter)) {
+				securityFilterOrder.add(filter);
+			}
+		}
+		securityFilterOrder.add(securityFilterClsName);
+	}
+
+	public List<String> getSecurityFilterOrder() {
+		return securityFilterOrder;
+	}
+	
+	public static boolean isAttributeNullInElementAndParent(Element element , String attributeName) {
+		return (element.getAttribute(attributeName)==null && ((Element)element.getParent()).getAttribute(attributeName)==null);
+	}
+	
+	public static boolean isElementAttributeValueMatchedOrNull(Element element ,String attributeName,String attributeValue) {
+		return (element.getAttributeValue(attributeName)==null) || attributeValue.equals(element.getAttributeValue(attributeName)); 
+	}
+	
+	public static boolean isElementAttributeValueMatchedOrNotNull(Element element ,String attributeName,String attributeValue) {
+		return (element.getAttributeValue(attributeName)!=null) && attributeValue.equals(element.getAttributeValue(attributeName)); 
+	}
+	
+	public static boolean isAttributeNotNullInElementOrParent(Element element, String attributeName) {
+		return (element.getAttribute(attributeName) != null || ((Element)element.getParent()).getAttribute(attributeName) !=null);
+	}
+	
+	public static boolean isAttributeValueMatchedinElementorParent(Element element ,String attributeName,String attributeValue) {
+		return (attributeValue.equals(element.getAttributeValue(attributeName)) || attributeValue.equals(((Element)element.getParent()).getAttributeValue(attributeName)));
+	}
+	
+	public static boolean isAttributeNameValueMisMatched(Element element,String attributeName,String attributeValue) {
+		if(isAttributeNullInElementAndParent(element,attributeName)) {
+			return true;
+		} else if(element.getAttribute(attributeName)!=null && ((Element)element.getParent()).getAttribute(attributeName)!=null) {
+			return (!attributeValue.equalsIgnoreCase(element.getAttributeValue(attributeName)));
+		}else {
+			return ((element.getAttribute(attributeName)!=null &&!attributeValue.equalsIgnoreCase(element.getAttributeValue(attributeName)))|| (((Element)element.getParent()).getAttribute(attributeName)!=null &&  !attributeValue.equalsIgnoreCase(((Element)element.getParent()).getAttributeValue(attributeName)))) ;
+		}
+	}
+
+	public static boolean isAttributeContainsAttributeValue(Element element,String attributeName,String attributeValue) {
+		if(isAttributeNullInElementAndParent(element,attributeName)) {
+			return false;
+		} else if(element.getAttribute(attributeName)!=null && ((Element)element.getParent()).getAttribute(attributeName)!=null) {
+			return (element.getAttributeValue(attributeName).toUpperCase().contains(attributeValue.toUpperCase()));
+		}else {
+			return ((element.getAttribute(attributeName)!=null &&element.getAttributeValue(attributeName).toUpperCase().contains(attributeValue.toUpperCase()))|| (((Element)element.getParent()).getAttribute(attributeName)!=null &&  ((Element)element.getParent()).getAttributeValue(attributeName).toUpperCase().contains(attributeValue.toUpperCase()))) ;
+		}
+	}
+	
+	public static int getAttributeIntegerValue(Element element, String attributeName) {
+		try {
+			return Integer.parseInt(element.getAttributeValue(attributeName));
+		}catch(NumberFormatException e){
+			throw e;
+		}
+	}
+	
+	public static boolean isAttributeNameValueMatched(Element element,String attributeName, String attributeValue ) {
+		if(element.getAttribute(attributeName)!=null && ((Element)element.getParent()).getAttribute(attributeName)!=null) {
+			return (attributeValue.equalsIgnoreCase(element.getAttributeValue(attributeName)));
+		}else if(element.getAttribute(attributeName)!=null || ((Element)element.getParent()).getAttribute(attributeName)!=null) {
+			return ((element.getAttribute(attributeName)!=null &&attributeValue.equalsIgnoreCase(element.getAttributeValue(attributeName)))|| (((Element)element.getParent()).getAttribute(attributeName)!=null &&  attributeValue.equalsIgnoreCase(((Element)element.getParent()).getAttributeValue(attributeName)))) ;
+		}
+		return false;
+	}
+	
+	public static boolean isValidData(String data) {
+		return data!=null && !data.equals("");
+	}
+	
+	//URL path Checks
+	public boolean isURLPathNotConfigured(Element urlElement) {
+		if(isAttributeNullInElementAndParent(urlElement,"path")) {
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean isURLPathInvalid(Element urlElement) {
+		String path = urlElement.getAttributeValue("path");
+		if ("".equals(path)) {
+			return true;
+		} else {
+			String parentPath = ((Element) urlElement.getParent()).getAttributeValue("path");
+			if (path==null && "".equals(parentPath)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isPathContainsDotStar(Element urlElement) {
+		String path = urlElement.getAttributeValue("path");
+		String parentPath = ((Element)urlElement.getParent()).getAttributeValue("path");
+		if(path!=null && path.contains(".*")) {
+			return true;
+		} else if(!isValidData(path) && parentPath!=null && parentPath.contains(".*")) {
+			return true;
+		}
+		return false;
+	}
+	
+	//operation-param and opaeration-value check
+	public boolean isOperationValueNotConfigured(Element urlElement) {
+		if(isAttributeNotNullInElementOrParent(urlElement,"operation-param")) {
+			if(isAttributeNullInElementAndParent(urlElement,"operation-value")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isOperationParamNotConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"operation-value")) {
+			if(isAttributeNullInElementAndParent(urlElement,"operation-param")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	//apiscope and iscscope related check
+	public boolean isScopeNotConfigured(Element urlElement) {
+		if(isAttributeValueMatchedinElementorParent(urlElement,"api","true")) {
+			boolean isApiScopeNull = isAttributeNullInElementAndParent(urlElement ,"apiscope");
+			boolean isOauthScopeNull =isAttributeNullInElementAndParent(urlElement ,"oauthscope");
+			boolean isOrgOauthScopeNull =isAttributeNullInElementAndParent(urlElement ,"org-oauthscope");
+			if(isApiScopeNull && isOauthScopeNull && isOrgOauthScopeNull) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isIscScopeNotConfigured(Element urlElement){
+		if(isAttributeValueMatchedinElementorParent(urlElement,"isc","true")) {
+			if(isAttributeNullInElementAndParent(urlElement,"iscscope")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	//runas-groupid-param and runas-grouptype-param related check
+	public boolean  isRunAsGroupTypeParamNotConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"runas-groupid-param")) {
+			if(isAttributeNullInElementAndParent(urlElement,"runas-grouptype-param")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isRunAsGroupIdParamNotConfiguredCheck(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"runas-grouptype-param")) {
+			if(isAttributeNullInElementAndParent(urlElement,"runas-groupid-param")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	// method and csrf related check
+	public boolean isURLCSRFMethodPostPutDeleteNotConfigured(Element urlElement){
+		if(isAttributeValueMatchedinElementorParent(urlElement,"csrf","true")){
+			String method = urlElement.getAttributeValue("method");
+			String parentMethod = ((Element)urlElement.getParent()).getAttributeValue("method");
+			if(method == null && parentMethod ==null) {
+				return true;
+			}
+			if(method!=null) {
+				method = method.toLowerCase();
+			}
+			if(parentMethod!=null) {
+				parentMethod = parentMethod.toLowerCase();
+			}
+			if(method!=null && !method.contains("post") && !method.contains("put") && !method.contains("delete") && !method.contains("patch")) {
+				return true;
+			} else if(!isValidData(method) && parentMethod!=null && !parentMethod.contains("post") && !parentMethod.contains("put") && !parentMethod.contains("delete") && !parentMethod.contains("patch")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isReadWriteMethodConfiguredinSameURL(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"method")){
+			String method = urlElement.getAttributeValue("method");
+			String parentMethod = ((Element)urlElement.getParent()).getAttributeValue("method");
+			boolean isGetConfigured = false;
+			boolean isPostPutPatchDeleteConfigured = false;
+			if(method != null || parentMethod !=null) {
+				if(method!=null) {
+					method = method.toLowerCase();
+				}
+				if(!isValidData(method) && parentMethod!=null) {
+					method = parentMethod.toLowerCase();
+				}
+				if(method.contains("get")) {
+					isGetConfigured = true;
+				}
+				if(method.contains("post") || method.contains("put") || method.contains("delete") || method.contains("patch")) {
+					isPostPutPatchDeleteConfigured = true;
+				}
+				if(isGetConfigured && isPostPutPatchDeleteConfigured) {
+					errorMessage ="method='" + method + "' is configured. Please split the configuration based on methods.";
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	
+	public boolean isGetMethodWithWriteOperationTypeConfigured(Element urlElement) {
+		String method = urlElement.getAttributeValue("method");
+		String parentMethod = ((Element) urlElement.getParent()).getAttributeValue("method");
+		if (method != null) {
+			method = method.toLowerCase();
+		}
+		if (!isValidData(method) && parentMethod != null) {
+			method = parentMethod.toLowerCase();
+		}
+		if (method == null || (method != null && method.contains("get"))) {
+			boolean isAuthenticationNotRequired = isAttributeNameValueMisMatched(urlElement, "authentication", "required");
+			if (!isAuthenticationNotRequired) {
+				boolean isApiscopeNotNull = isAttributeNotNullInElementOrParent(urlElement, "apiscope");
+				boolean isIscscopeNotNull = isAttributeNotNullInElementOrParent(urlElement, "iscscope");
+				boolean isOauthscopeNotNull = isAttributeNotNullInElementOrParent(urlElement, "oauthscope");
+				boolean isOrgOauthScopeNotNull = isAttributeNotNullInElementOrParent(urlElement, "org-oauthscope");
+				boolean isNonReadOperationType = false;
+				if (isAttributeNotNullInElementOrParent(urlElement, "operation-type")) {
+					String operationType = urlElement.getAttributeValue("operation-type");
+					String parentOperationType = ((Element) urlElement.getParent()).getAttributeValue("operation-type");
+					if (!isValidData(operationType) && parentOperationType != null) {
+						operationType = parentOperationType;
+					}
+					operationType = operationType.toLowerCase();
+					if (operationType.contains("create") || operationType.contains("delete") || operationType.contains("update")) {
+						isNonReadOperationType = true;
+					}
+				}
+				if((isApiscopeNotNull || isIscscopeNotNull || isOauthscopeNotNull || isOrgOauthScopeNotNull) && isCSRFCheckRemovedForGetMethod && isNonReadOperationType) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean isCSRFNotConfigured(Element urlElement){
+		String method = urlElement.getAttributeValue("method");
+		String parentMethod = ((Element)urlElement.getParent()).getAttributeValue("method");
+		boolean isMethodcontainPostPutDelete = (method !=null && (method.contains("post") || method.contains("put") || method.contains("delete")));
+		boolean isParentMethodContainsPostPutDelete = (!isValidData(method) && parentMethod!=null && (parentMethod.contains("post") || parentMethod.contains("put") || parentMethod.contains("delete")));
+		boolean isAuthenticationNotRequired = isAttributeNameValueMisMatched(urlElement,"authentication","required");
+		if((isMethodcontainPostPutDelete || isParentMethodContainsPostPutDelete) && (!isAuthenticationNotRequired))	{
+			boolean isApiscopeNull = isAttributeNullInElementAndParent(urlElement,"apiscope");
+			boolean isIscscopeNull = isAttributeNullInElementAndParent(urlElement,"iscscope");
+			boolean isOauthscopeNull = isAttributeNullInElementAndParent(urlElement,"oauthscope");
+			boolean isOrgOauthScopeNull = 	isAttributeNullInElementAndParent(urlElement,"org-oauthscope");
+			boolean isInternalTrue = isAttributeValueMatchedinElementorParent(urlElement,"internal","true");
+			boolean isApiTrue = isAttributeValueMatchedinElementorParent(urlElement,"api","true");
+			boolean isStatelessAuth = isAttributeContainsAttributeValue(urlElement, "auth-type", "stateless_");
+			if(isApiscopeNull && isIscscopeNull && isOauthscopeNull && isOrgOauthScopeNull && !isInternalTrue  && !isApiTrue && !isStatelessAuth) {
+				String csrfValue =urlElement.getAttributeValue("csrf");
+				String csrfValueInParent = ((Element)urlElement.getParent()).getAttributeValue("csrf");
+				if(!"true".equals(csrfValue) && !"true".equals(csrfValueInParent)) {
+					errorMessage  = "csrf='true' is not configured. If method contains ";
+					String methodValue = null;
+					if(method !=null) {
+						methodValue += method;
+					} else {
+						methodValue +=parentMethod;
+					}
+					if(methodValue.contains("post")) {
+						errorMessage+=" post ";
+					} else if(methodValue.contains("put")) {
+						errorMessage+=" put ";
+					} else if(methodValue.contains("delete")) {
+						errorMessage+=" delete ";
+					}
+					errorMessage +=" ,it is mandatory to configure csrf='true'.";
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public boolean isCSRFNotConfiguredForPatch(Element urlElement){
+		String method = urlElement.getAttributeValue("method");
+		String parentMethod = ((Element)urlElement.getParent()).getAttributeValue("method");
+		boolean isMethodcontainPostPutDelete = (method !=null && (method.contains("POST") || method.contains("PUT") || method.contains("DELETE") || method.contains("patch") || method.contains("PATCH")));
+		boolean isParentMethodContainsPostPutDelete = (!isValidData(method) && parentMethod!=null && (parentMethod.contains("POST") || parentMethod.contains("PUT") || parentMethod.contains("DELETE") || parentMethod.contains("patch") || parentMethod.contains("PATCH")));
+		boolean isAuthenticationNotRequired = isAttributeNameValueMisMatched(urlElement,"authentication","required");
+		if((isMethodcontainPostPutDelete || isParentMethodContainsPostPutDelete) && (!isAuthenticationNotRequired))	{
+			boolean isApiscopeNull = isAttributeNullInElementAndParent(urlElement,"apiscope");
+			boolean isIscscopeNull = isAttributeNullInElementAndParent(urlElement,"iscscope");
+			boolean isOauthscopeNull = isAttributeNullInElementAndParent(urlElement,"oauthscope");
+			boolean isOrgOauthScopeNull = 	isAttributeNullInElementAndParent(urlElement,"org-oauthscope");
+			boolean isInternalTrue = isAttributeValueMatchedinElementorParent(urlElement,"internal","true");
+			boolean isApiTrue = isAttributeValueMatchedinElementorParent(urlElement,"api","true");
+			boolean isStatelessAuth = isAttributeContainsAttributeValue(urlElement, "auth-type", "stateless_");
+			if(isApiscopeNull && isIscscopeNull && isOauthscopeNull && isOrgOauthScopeNull && !isInternalTrue  && !isApiTrue && !isStatelessAuth) {
+				String csrfValue =urlElement.getAttributeValue("csrf");
+				String csrfValueInParent = ((Element)urlElement.getParent()).getAttributeValue("csrf");
+				if(!"true".equals(csrfValue) && !"true".equals(csrfValueInParent)) {
+					errorMessage  = "csrf='true' is not configured. If method contains ";
+					String methodValue = null;
+					if(method !=null) {
+						methodValue += method;
+					} else {
+						methodValue +=parentMethod;
+					}
+					if(methodValue.contains("POST")) {
+						errorMessage+=" POST ";
+					} else if(methodValue.contains("PUT")) {
+						errorMessage+=" PUT ";
+					} else if(methodValue.contains("DELETE")) {
+						errorMessage+=" DELETE ";
+					} else if(methodValue.contains("patch")) {
+						errorMessage+=" patch ";
+					} else if(methodValue.contains("PATCH")) {
+						errorMessage+=" PATCH ";
+					}
+					errorMessage +=" ,it is mandatory to configure csrf='true'.";
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	//authentication related check
+	public boolean isInternalUnauthenticatedURLScopedServicesNotConfigured(Element urlElement){
+		boolean isInternalNotNull = isAttributeNotNullInElementOrParent(urlElement,"internal");
+		boolean isInternalTrue = isAttributeValueMatchedinElementorParent(urlElement,"internal","true");
+		boolean isAuthenticationNotRequired = isAttributeNameValueMisMatched(urlElement,"authentication","required");
+		if(isInternalNotNull && isInternalTrue && isAuthenticationNotRequired) {
+			boolean isScopedServicesNullOrEmpty = isElementAttributeValueMatchedOrNull(urlElement,"scoped-services","");
+			boolean isScopedServicesNullOrEmptyInParent = isElementAttributeValueMatchedOrNull((Element)urlElement.getParent(),"scoped-services","");
+			if(isScopedServicesNullOrEmpty && isScopedServicesNullOrEmptyInParent) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isURLApiScopeAuthenticationNotConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"apiscope")) {
+			if(isAttributeNameValueMisMatched(urlElement,"authentication","required") && isAttributeNameValueMisMatched(urlElement,"authentication","optional")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isURLApiScopeAuthenticationOptionalConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"apiscope")) {
+			if(isAttributeNameValueMatched(urlElement,"authentication","optional")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isISCScopeAuthenticationNotConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"iscscope")) {
+			if(isAttributeNameValueMisMatched(urlElement,"authentication","required") && isAttributeNameValueMisMatched(urlElement,"authentication","optional")) {
+				return true;
+			}
+		} 
+		return false;
+	}
+	
+	public boolean isURLISCScopeAuthenticationOptionalConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"iscscope")) {
+			if(isAttributeNameValueMatched(urlElement,"authentication","optional")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isURLOAuthScopeAuthenticationNotConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"oauthscope")) {
+			if(isAttributeNameValueMisMatched(urlElement,"authentication","required") && isAttributeNameValueMisMatched(urlElement,"authentication","optional")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isURLOAuthScopeAuthenticationOptionalConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"oauthscope")) {
+			if(isAttributeNameValueMatched(urlElement,"authentication","optional")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isURLRolesAuthenticationNotConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"roles")) {
+			if(isAttributeNameValueMisMatched(urlElement,"authentication","required")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isURLOrgOAuthScopeAuthenticationNotConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"org-oauthscope")) {
+			if(isAttributeNameValueMisMatched(urlElement,"authentication","required") && isAttributeNameValueMisMatched(urlElement,"authentication","optional")) {
+				return true;
+			}
+		} 
+		return false;
+	}
+	
+	public boolean isURLOrgOAuthScopeAuthenticationOptionalConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"org-oauthscope")) {
+			if(isAttributeNameValueMatched(urlElement,"authentication","optional")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isURLAuthTypeAuthenticationNotConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"auth-type")) {
+			if(isAttributeNameValueMisMatched(urlElement,"authentication","required") && isAttributeNameValueMisMatched(urlElement,"authentication","optional")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isURLAuthTypeAuthenticationOptionalConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"auth-type")) {
+			if(isAttributeNameValueMatched(urlElement,"authentication","optional")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean inValidWebHookGetAccess(Element urlElement) {
+		boolean isWebhookAvailable = isAttributeNotNullInElementOrParent(urlElement,"webhook-access-method");
+		if (isWebhookAvailable) {
+			boolean isAuthenticationNotRequired = isAttributeNameValueMisMatched(urlElement, "authentication", "required");
+			boolean isMethodNotPost = isAttributeNameValueMisMatched(urlElement, "method", "post");
+			boolean isOperationTypeNotCreate = isAttributeNameValueMisMatched(urlElement, "operation-type", "create");
+			boolean isOauthScopeNull = isAttributeNullInElementAndParent(urlElement, "oauthscope");
+			boolean isOrgOauthScopeNull = isAttributeNullInElementAndParent(urlElement, "org-oauthscope");
+			if(isAuthenticationNotRequired || isMethodNotPost || isOperationTypeNotCreate || (isOauthScopeNull && isOrgOauthScopeNull)) {
+				String msgValue = null;
+				if(isAuthenticationNotRequired) {
+					msgValue = "authentication='required'";
+				} 
+				if(isMethodNotPost && msgValue !=null) {
+					msgValue += ", method='post'";
+				} else if(isMethodNotPost) {
+					msgValue = "method='post'";
+				}
+				if(isOperationTypeNotCreate && msgValue !=null) {
+					msgValue += ", operation-type='create'";
+				} else if(isOperationTypeNotCreate) {
+					msgValue = "operation-type='create'";
+				}
+				if((isOauthScopeNull && isOrgOauthScopeNull)  && msgValue !=null) {
+					msgValue += ", 'oauthscaope' or 'org-oauthscope'";
+				} else if((isOauthScopeNull && isOrgOauthScopeNull)) {
+					msgValue = "'oauthscaope' or 'org-oauthscope'";
+				}
+				errorMessage = msgValue +" is not configured. If webhook-get-access='true', it is mandatory to configure "+msgValue;
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean  isURLAppAccountMemberRolesAuthenticationNotConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"app-account-member-roles")) {
+			if(isAttributeNameValueMisMatched(urlElement,"authentication","required")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isURLRunAsGroupIdParamAuthenticationNotConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"runas-groupid-param")) {
+			if(isAttributeNameValueMisMatched(urlElement,"authentication","required")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isURLRunAsGroupTypeParamAuthenticationNotConfigured(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement,"runas-grouptype-param")) {
+			if(isAttributeNameValueMisMatched(urlElement,"authentication","required")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean checkUrlMethod(Element urlElement){
+		if(isAttributeNotNullInElementOrParent(urlElement ,"method")) {
+			String methodValue = urlElement.getAttributeValue("method");
+			String methodValueInParent = ((Element)urlElement.getParent()).getAttributeValue("method");
+			boolean isInvalidMethod = false;
+			String invalidMethod = null;
+			if(methodValue != null) {
+				List<String> methodList = Arrays.asList(methodValue.split(","));
+				for(String method : methodList) {
+					if(!customMethodList.contains(method.toLowerCase())) {
+						isInvalidMethod = true;
+						if(invalidMethod ==null) {
+							invalidMethod = method;
+						} else {
+							invalidMethod +=",";
+							invalidMethod += method;
+						}
+					}
+				}
+			} else if(methodValue==null && methodValueInParent!=null){
+				List<String> methodList = Arrays.asList(methodValueInParent.split(","));
+				for(String method : methodList) {
+					if(!customMethodList.contains(method.toLowerCase())) {
+						isInvalidMethod = true;
+						if(invalidMethod ==null) {
+							invalidMethod = method;
+						} else {
+							invalidMethod +=",";
+							invalidMethod += method;
+						}
+					}
+				}
+			}
+			if(isInvalidMethod) {
+				errorMessage = "Invalid method '"+ invalidMethod+"' configured.If this method is required,configure it as a property with key 'custom.request.methods' in secruity-properties.xml";
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isOperationTypeNotConfiguredForScopeURL(Element urlElement){
+		boolean isOauthScopeConfigured = isAttributeNotNullInElementOrParent(urlElement,"oauthscope");
+		boolean isOrgOauthScopeConfigured = isAttributeNotNullInElementOrParent(urlElement,"org-oauthscope");
+		if(isOauthScopeConfigured || isOrgOauthScopeConfigured) {
+			if(isAttributeNullInElementAndParent(urlElement,"operation-type")) {
+				String msgValue = null;
+				if(isOauthScopeConfigured) {
+					msgValue = "'oauthscope'";
+				}
+				if(isOrgOauthScopeConfigured) {
+					msgValue = "'org-oauthscope'";
+				}
+				errorMessage = "'operation-type' attribute is not configured. If "+ msgValue+" attribute is configured,it is mandatory to configure 'operation-type' attribute";
+				return true;
+			}
+		}
+		return false;
+	}	
+
+	public boolean isURLUnAuthenticated(Element urlElement) {
+		boolean scopedServicesConfigured = isAttributeNotNullInElementOrParent(urlElement,"scoped-services");
+		boolean dcSysyemAuthConfigured = isAttributeNameValueMisMatched(urlElement,"dc-system-auth","true");
+		if(!scopedServicesConfigured && dcSysyemAuthConfigured) {
+			if (isAttributeNameValueMisMatched(urlElement, "authentication", "required")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	//param type JSON xss related check
+	public boolean isParamTypeXSSRegexNotConfigured(Element paramElement){
+		boolean isTypeNull = (paramElement.getAttribute("type")==null);
+		boolean isXssNull = (paramElement.getAttribute("xss")==null);
+		boolean isRegexNull = (paramElement.getAttribute("regex")==null);
+		if(isTypeNull && isXssNull && isRegexNull) {
+			errorMessage = "'type/xss/regex' attribute is not configured.For "+ paramElement.getName() +" element, it is mandatory to configure 'type/xss/regex' attribute.";
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean isParamJsonXssTemplateRegexNotConfigured(Element paramElement){
+		String typeValue = paramElement.getAttributeValue("type");
+		String regexValue = paramElement.getAttributeValue("regex");
+		boolean isTypeValueContainsJSON = typeValue!=null ? typePattern.matcher(typeValue).matches() : false;
+		boolean isRegexValueContainsJSON = regexValue!=null ?  regexPattern .matcher(regexValue).matches() : false;
+		if(isTypeValueContainsJSON || isRegexValueContainsJSON){
+			boolean  isXssNull = (paramElement.getAttribute("xss")==null);
+			boolean isTemplateNull = (paramElement.getAttribute("template")==null);
+			if(isXssNull && isTemplateNull) {
+				if (isTypeValueContainsJSON) {
+					errorMessage = "'template/xss' attribute is not configured.If type='" + typeValue + "' ,it is mandatory to configure 'template/xss' attribute.";
+				} else if (isRegexValueContainsJSON) {
+					errorMessage = "'template/xss' attribute is not configured.If regex='" + regexValue + "' ,it is mandatory to configure 'template/xss' attribute.";
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamJSONTypeNotConfigured(Element paramElement){
+		if(paramElement.getAttribute("template")!=null) {
+			String typeValue = paramElement.getAttributeValue("type");
+			String regexValue = paramElement.getAttributeValue("regex");
+			boolean isTypeValueContainsJSON = typeValue!=null ? typePattern.matcher(typeValue).matches() : false;
+			boolean isRegexValueContainsJSON = regexValue!=null ?  regexPattern.matcher(regexValue).matches() : false;
+			if(!isTypeValueContainsJSON && !isRegexValueContainsJSON) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamTypeXMLNotConfigured(Element paramElement){
+		String xmlSchemaValidationValue = paramElement.getAttributeValue("xml-schema-validation");
+		if("true".equals(xmlSchemaValidationValue)) {
+			String typeValue = paramElement.getAttributeValue("type");
+			String regexValue = paramElement.getAttributeValue("regex");
+			if(!"xml".equals(typeValue) && !"xml".equals(regexValue)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamTypeStringConfigured(Element paramElement){
+		String typeValue = paramElement.getAttributeValue("type");
+		String regexValue = paramElement.getAttributeValue("regex");
+		if(typeValue!=null && "String".equals(typeValue)) {
+			errorMessage = "type='String' is not a whitelist configuration.If your input is html configure xss='antisamyfilter' or a suitable 'type' or 'regex' attribute.";
+			return true;
+		} else if(regexValue!=null && "String".equals(regexValue)) {
+			errorMessage = "regex='String' is not a whitelist configuration.If your input is html configure xss='antisamyfilter' or a suitable 'type' or 'regex' attribute.";
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean isParamXssXmlSchemaValidationNotConfigured(Element paramElement){
+		String typeValue = paramElement.getAttributeValue("type");
+		String regexValue = paramElement.getAttributeValue("regex");
+		if("xml".equals(typeValue) || "xml".equals(regexValue)) {
+			boolean isXssNull = (paramElement.getAttribute("xss")==null);
+			boolean isXmlSchemaValidationNull = (paramElement.getAttribute("xml-schema-validation")==null);
+			boolean isXmlSchemaNull = (paramElement.getAttribute("xml-schema")==null);
+			if(isXssNull && isXmlSchemaValidationNull && isXmlSchemaNull) {
+				if("xml".equals(typeValue)) {
+					errorMessage = "xss' or 'xml-schema-validation' or 'xml-schema' attribute is not configured.If type='xml' ,it is mandatory to configure to 'xss' or 'xml-schema-validation' or 'xml-schema'.";
+				} else if("xml".equals(regexValue)){
+					errorMessage = "xss' or 'xml-schema-validation' or 'xml-schema' attribute is not configured.If regex='xml' ,it is mandatory to configure to 'xss' or 'xml-schema-validation' or 'xml-schema'.";
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamTypeXMLXssConfigured(Element paramElement){
+		String typeValue = paramElement.getAttributeValue("type");
+		String regexValue = paramElement.getAttributeValue("regex");
+		if("xml".equals(typeValue) || "xml".equals(regexValue)) {
+			boolean isXssConfigured = (paramElement.getAttribute("xss")!=null);
+			boolean isXmlSchemaValidationConfigured = (paramElement.getAttribute("xml-schema-validation")!=null);
+			boolean isXmlSchemaConfigured = (paramElement.getAttribute("xml-schema")!=null);
+			if(isXssConfigured && !isXmlSchemaValidationConfigured && !isXmlSchemaConfigured) {
+				if("xml".equals(typeValue)) {
+					errorMessage = "'xss' attribute is configured.If type='xml' ,it is mandatory to configure 'xml-schema-validation' or 'xml-schema'";
+				} else if("xml".equals(regexValue)){
+					errorMessage = "'xss' attribute is configured.If regex='xml' ,it is mandatory to configure 'xml-schema-validation' or 'xml-schema'";
+				}
+				return true;
+			} else if(isXssConfigured && isXmlSchemaValidationConfigured) {
+				if("xml".equals(typeValue)) {
+					errorMessage = "Both 'xss' & 'xml-schema-validation' attributes are configured. If type= xml, 'xml-schema-validation' is enough.";
+				} else if("xml".equals(regexValue)){
+					errorMessage = "Both 'xss' & 'xml-schema-validation' attributes are configured. If regex= xml, 'xml-schema-validation' is enough.";
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
+	
+	public boolean isParamJsonXssAndTemplateBothConfigured(Element paramElement){
+		String typeValue = paramElement.getAttributeValue("type");
+		String regexValue = paramElement.getAttributeValue("regex");
+		boolean isTypeValueContainsJSON = typeValue!=null ? typePattern.matcher(typeValue).matches() : false;
+		boolean isRegexValueContainsJSON = regexValue!=null ? regexPattern.matcher(regexValue).matches() : false;
+		if (isTypeValueContainsJSON || isRegexValueContainsJSON) {
+			if (paramElement.getAttribute("template") != null && paramElement.getAttribute("xss") != null) {
+				if (typeValue != null) {
+					errorMessage = "Both 'xss' & 'template' attributes are configured. If type='" + typeValue + "', either 'xss' or 'template' is allowed but not both.";
+					return true;
+				} else if (regexValue != null) {
+					errorMessage = "Both 'xss' & 'template' attributes are configured. If type='" + regexValue + "', either 'xss' or 'template' is allowed but not both.";
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamRegexXssClearTextConfigured(Element paramElement){
+		String regexValue = paramElement.getAttributeValue("regex");
+		if(regexValue != null) {
+			if((regexValue.contains("cleartext:") && !regexValue.contains("cleartext:removehtmlentities"))) {
+				errorMessage ="regex='"+ regexValue +"' is not a whitelist configuration. Instead configure  xss='antisamyfilter' or do proper output encoding.";
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamRegexXSSThrowConfigured(Element paramElement){
+		String regexValue = paramElement.getAttributeValue("regex");
+		if(regexValue != null) {
+			if(regexValue.contains("XSS:throwerror") || regexValue.contains("XSS:throw")) {
+				errorMessage ="regex='"+ regexValue +"' is not a whitelist configuration. Instead configure  xss='antisamyfilter' or do proper output encoding.";
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamRegexXSSEscapeConfigured(Element paramElement){
+		String regexValue = paramElement.getAttributeValue("regex");
+		if(regexValue != null) {
+			if(regexValue.contains("XSS:escape")) {
+				errorMessage ="regex='"+ regexValue +"' is not a whitelist configuration. Instead configure  xss='antisamyfilter' or do proper output encoding.";
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamTypeXssClearTextConfigured(Element paramElement){
+		String typeValue = paramElement.getAttributeValue("type");
+		if(typeValue !=null) {
+			if(typeValue.contains("xss:") || (typeValue.contains("cleartext:") && !typeValue.contains("cleartext:removehtmlentities"))) {
+				errorMessage ="type='"+ typeValue +"' is not a whitelist configuration. Instead configure  xss='antisamyfilter' or do proper output encoding.";
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamRegexClearTextHtmlEntitiesConfigured(Element paramElement){
+		String regexValue = paramElement.getAttributeValue("regex");
+		if(regexValue != null) {
+			if(regexValue.equals("cleartext:removehtmlentities")) {
+				errorMessage ="regex='"+ regexValue +"' is not a whitelist configuration. Instead configure  xss='antisamyfilter' or do proper output encoding.";
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamTypeClearTextHtmlEntitiesConfigured(Element paramElement){
+		String typeValue = paramElement.getAttributeValue("type");
+		if(typeValue !=null) {
+			if(typeValue.equals("cleartext:removehtmlentities")) {
+				errorMessage ="type='"+ typeValue +"' is not a whitelist configuration. Instead configure  xss='antisamyfilter' or do proper output encoding.";
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamJsonXssConfigured(Element paramElement){
+		String typeValue = paramElement.getAttributeValue("type");
+		String regexValue = paramElement.getAttributeValue("regex");
+		boolean isTypeValueContainsJSON = typeValue!=null ?  typePattern.matcher(typeValue).matches() : false;
+		boolean isRegexValueContainsJSON = regexValue!=null ?  regexPattern.matcher(regexValue).matches() : false;
+		if(isTypeValueContainsJSON || isRegexValueContainsJSON){
+			if (paramElement.getAttribute("xss")!=null && paramElement.getAttribute("template")==null) {
+				if(typeValue !=null) {
+					errorMessage = "'xss' attribute should not be configured.If type='"+ typeValue +"' ,it is mandatory to configure 'template' attribute.";
+				} else if(regexValue !=null) {
+					errorMessage = "'xss' attribute should not be configured.If regex='"+ regexValue +"' ,it is mandatory to configure 'template' attribute.";
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	//min-len ,max-len ,  min-occurrences,max-occurrences related check
+	public boolean isParamMaxOccurrenceNotConfigured(Element paramElement){
+		if(paramElement.getAttribute("min-occurrences") !=null && paramElement.getAttributeValue("min-occurrences")!="") {
+			boolean isMinOccurrenceGreaterthanOne = getAttributeIntegerValue(paramElement,"min-occurrences") >1;
+			boolean isMaxOccurrenceNull = paramElement.getAttribute("max-occurrences")==null;
+			if(isMinOccurrenceGreaterthanOne && isMaxOccurrenceNull) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamMinOccurrenceInvalid(Element paramElement){
+		boolean minOccurrencesNotNull = paramElement.getAttribute("min-occurrences")!=null;
+		boolean maxOccurrencesNotNull = paramElement.getAttribute("max-occurrences")!=null;
+		if(minOccurrencesNotNull && maxOccurrencesNotNull){
+			String maxOccurrence = paramElement.getAttributeValue("max-occurrences");
+			if(!"-1".equals(maxOccurrence)) {
+				int minOccurrenceValue = getAttributeIntegerValue(paramElement,"min-occurrences");
+				int maxOccurrenceValue = getAttributeIntegerValue(paramElement,"max-occurrences");
+				if(minOccurrenceValue > maxOccurrenceValue) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamSplitMaxOccurrenceNotConfigured(Element paramElement){
+		boolean splitNotNull = paramElement.getAttribute("split")!=null;
+		boolean maxOccurrencesNotNull = paramElement.getAttribute("max-occurrences")!=null;
+		if(splitNotNull && maxOccurrencesNotNull){
+			String maxOccurrence = paramElement.getAttributeValue("max-occurrences");
+			if(!"-1".equals(maxOccurrence)) {
+				if(getAttributeIntegerValue(paramElement,"max-occurrences") <= 1) {
+					return false; 
+				}
+			}
+		} else if(splitNotNull && !maxOccurrencesNotNull) {
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean isParamMinLengthInvalid(Element paramElement){
+		if(paramElement.getAttributeValue("min-len")!=null){
+			boolean isMinLenGreaterThanHundred = getAttributeIntegerValue(paramElement,"min-len") >  100;
+			boolean isMaxLenNull = paramElement.getAttributeValue("max-len")==null;
+			if(isMinLenGreaterThanHundred && isMaxLenNull) {
+				return true;	
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamMaxLengthInvalid(Element paramElement){
+		boolean isMinLenNotNull = paramElement.getAttribute("min-len")!=null;
+		boolean isMaxLenNotNull = paramElement.getAttribute("max-len")!=null;
+		if(isMinLenNotNull && isMaxLenNotNull) {
+			String maxLen = paramElement.getAttributeValue("max-len");
+			if(!"-1".equals(maxLen)) {
+				int minLenValue = getAttributeIntegerValue(paramElement,"min-len");
+				int maxLenValue = getAttributeIntegerValue(paramElement,"max-len");
+				if(minLenValue > maxLenValue) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamMaxLengthInfiniteConfiguration(Element paramElement){
+		if(paramElement.getAttributeValue("max-len")!=null) {
+			String paramType =paramElement.getAttributeValue("type");
+			String paramRegex = paramElement.getAttributeValue("regex");
+			boolean isTypeValueContainsJSON = paramType!=null ? typePattern.matcher(paramType).matches() : false;
+			boolean isRegexValueContainsJSON = paramRegex!=null ? regexPattern.matcher(paramRegex).matches() : false;
+			if(!(isTypeValueContainsJSON || isRegexValueContainsJSON)) {
+				if(getAttributeIntegerValue(paramElement,"max-len") ==-1) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamXssThrowerrorConfigured(Element paramElement){
+		if(paramElement.getAttribute("xss")!=null || paramElement.getAttribute("regex")!=null) {
+			String xssValue = paramElement.getAttributeValue("xss");
+			String regexValue = paramElement.getAttributeValue("regex");
+			if((xssValue!= null && (xssValue.equals("throwerror") || xssValue.equals("throw"))) || (regexValue!= null && (regexValue.equals("xss:throwerror") || regexValue.equals("xss:throw")))) {
+				if(xssValue != null ) {
+					errorMessage = "xss='"+ xssValue +"' is not a whitelist configuration. Instead if your input is html, use xss='antisamyfilter' or do proper output encoding.";
+				} else {
+					errorMessage = "regex='"+ regexValue +"' is not a whitelist configuration. Instead if your input is html, use xss='antisamyfilter' or do proper output encoding.";
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamXssEscapeConfigured(Element paramElement){
+		if(paramElement.getAttribute("xss")!=null || paramElement.getAttribute("regex")!=null) {
+			String xssValue = paramElement.getAttributeValue("xss");
+			String regexValue = paramElement.getAttributeValue("regex");
+			if((xssValue!= null && xssValue.equals("escape")) || (regexValue!= null && regexValue.equals("xss:escape"))) {
+				if(xssValue != null ) {
+					errorMessage = "xss='"+ xssValue +"' is not a whitelist configuration. Instead if your input is html, use xss='antisamyfilter' or do proper output encoding.";
+				} else {
+					errorMessage = "regex='"+ regexValue +"' is not a whitelist configuration. Instead if your input is html, use xss='antisamyfilter' or do proper output encoding.";
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isSecretParamConfigured(Element paramElement){
+		if(paramElement.getAttribute("name")!=null) {
+			String paramName = paramElement.getAttributeValue("name");
+			boolean isSecretTrue = isAttributeValueMatchedinElementorParent(paramElement,"secret","true");
+			if(secretParamList.contains(paramName) && !isSecretTrue) {
+				errorMessage = "Secret param '"+ paramName +"' is configuration. Please configure secret='true'.";
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isParamXssNotWhitelisted(Element paramElement){
+		if(paramElement.getAttribute("xss")!=null) {
+			String xssValue = paramElement.getAttributeValue("xss");
+			if(!antisamyList.contains(xssValue) && !xssValue.equals("throwerror") && !xssValue.equals("throw") && !xssValue.equals("escape")) {
+				errorMessage = "xss='"+ xssValue +"' is not a whitelist configuration. Instead if your input is html, use xss='antisamyfilter' or do proper output encoding.";
+				return true;
+			}
+		}
+		return false;
+	}
+	
+ 	//xss ,salt-validity ,salt-delimiter ,salt-ticket related check
+	public boolean isParamSaltDelimiterNotConfigured(Element paramElement){
+		boolean isSaltValidityNotNull = paramElement.getAttribute("salt-validity")!=null;
+		boolean isSaltTicketNotNull = paramElement.getAttribute("salt-ticket")!=null;
+		if(isSaltValidityNotNull || isSaltTicketNotNull) {
+			if(paramElement.getAttribute("salt-delimiter")==null) {
+				if(isSaltValidityNotNull) {
+					errorMessage = "'salt-delimiter' attribute is not configured. If 'salt-validity' attribute is configured, it is mandatory to configure 'salt-delimiter' attribute.";
+				}
+				if(isSaltTicketNotNull) {
+					errorMessage = "'salt-delimiter' attribute is not configured. If 'salt-ticket' attribute is configured, it is mandatory to configure 'salt-delimiter' attribute.";
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isParamDecryptNotConfigured(Element paramElement){
+		if(paramElement.getAttribute("salt-delimiter")!=null) {
+			if(!"true".equals(paramElement.getAttributeValue("decrypt"))) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	//X-Frame-Options related check
+	public boolean isPropertyXFrameOptionInvalid(Element headerElement){
+		if("X-Frame-Options".equals(headerElement.getAttributeValue("name"))) {
+			String value = headerElement.getAttributeValue("value");
+			boolean isValueNotEqualSameOrigin = !"sameorigin".equalsIgnoreCase(value);
+			boolean isValueNotEqualTrusted = !"trusted".equalsIgnoreCase(value);
+			boolean isValueNotEqualdeny = !"deny".equalsIgnoreCase(value);
+			boolean isValueNotEqualTrustedList = !"trusted-list".equalsIgnoreCase(value);
+			boolean isValueNotEqualTrustedOrTrustedList = !"trusted|trusted-list".equalsIgnoreCase(value);
+			boolean isNotEqualEnableOnTrusted = !"enableontrusted".equalsIgnoreCase(value);
+			boolean isNotEqualEnableOnTrustedList = !"enableontrustedlist".equalsIgnoreCase(value);
+			boolean isValueNotStartsWithAllowFrom = !value.toUpperCase().startsWith("ALLOW-FROM");
+			if (isValueNotEqualSameOrigin && isValueNotEqualTrusted && isValueNotEqualdeny  && isValueNotStartsWithAllowFrom && isValueNotEqualTrustedList  && isNotEqualEnableOnTrustedList && isValueNotEqualTrustedOrTrustedList && isNotEqualEnableOnTrusted) {
+				errorMessage = "X-Frame-Options' attribute is not configured properly. 'X-Frame-Options' must be either 'trusted' or 'deny' or 'same-origin' or 'trusted-list' or 'trusted|trusted-list' or 'enableontrusted' or 'enableontrustedlist' Allow-From urls ";
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	//File related check
+	public boolean isFileAntivirusNotEnabled(Element fileElement){
+		String antivirusValue = fileElement.getAttributeValue("antivirus");
+		if(antivirusValue!=null && "false".equals(antivirusValue)) {
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean isContentTypeConfiguredForFiles(Element fileElement){
+		if(fileElement.getAttribute("content-type-name")==null && fileElement.getAttribute("allowed-content-types") == null) {
+			return true;
+		}
+		return false;
+	}
+	
+	public static boolean isFileNameXssConfigured(Element fileNameElement){
+		if(fileNameElement.getAttribute("xss")!=null) {
+			return true;
+		}
+		return false;
+	}
+
+	//xss pattern related check
+	public static boolean isXssFilterTypeNotAntisamy(Element xssPatternElement){
+		String xssFilterType = xssPatternElement.getAttributeValue("xss-filter-type");
+		if(xssFilterType!=null && !xssFilterType.equals("ANTISAMY")) {	
+			return true;
+		}
+		return false;
+	}
+	
+	//threshold ,duaration ,lockperiod ,hip related check
+	public boolean isAuthenticationThresholdNotConfigured(Element urlElement){
+		if(isAttributeValueMatchedinElementorParent(urlElement,"user","true")) {
+			String authenticationValue = urlElement.getAttributeValue("authentication");
+			String authenticationValueInParent = ((Element)urlElement.getParent()).getAttributeValue("authentication");
+			List<Element> throttleElements = urlElement.getChildren("throttle");
+			boolean isthrottleNotNull = true;
+			for(Element throttleElement : throttleElements) {
+				if(throttleElement.getAttribute("threshold")!= null) {
+					isthrottleNotNull = false;
+				}
+			}
+			List<Element> urlsthrottleElements = ((Element)urlElement.getParent()).getChildren("throttle");
+			for(Element throttleElement : urlsthrottleElements) {
+				if(throttleElement.getAttribute("threshold")!= null) {
+					isthrottleNotNull = false;
+				}
+			}
+			boolean isthrottleNull = isAttributeNullInElementAndParent(urlElement ,"threshold") && isthrottleNotNull;
+			String attributeName = null;
+			if(isthrottleNull) {
+				attributeName = "DOS prevention attributes (threshold,duration,lockperiod,hip) ";
+			}
+			if(authenticationValue==null  && authenticationValueInParent==null ) {
+				if(attributeName!= null) {
+					attributeName +=" and 'authentication attribute' ";
+					errorMessage = attributeName + "are not configured. If user='true' attribute is configured, it is mandatory to configure "+ attributeName;
+				} else {
+					errorMessage =  "'authentication' attribute is not configured. If user='true' attribute is configured, it is mandatory to configure 'authentication' attribute";
+				}
+				return true;
+			}
+			if("public".equals(authenticationValue) || isthrottleNull) {
+				if ("public".equals(authenticationValue)) {
+					if (attributeName != null) {
+						errorMessage = attributeName + "are not configured and 'authentication' is  configured as public. If user='true' attribute is configured, it is mandatory to configure "+ attributeName +"and 'authentication' other than public.";
+					} else {
+						errorMessage = "'authentication' is  configured as public. If user='true' attribute is configured, it is mandatory to configure 'authentication' other than public.";
+					}
+				} else {
+					errorMessage = "DOS prevention attributes (threshold,duration,lockperiod,hip) are not configured . If user='true' attribute is configured, it is mandatory to configure DOS prevention attributes";
+				}
+				return true;
+			} else if(!isValidData(authenticationValue) && ("public".equals(authenticationValueInParent) || isthrottleNull)) {
+				if (!isValidData(authenticationValue) && ("public".equals(authenticationValueInParent))) {
+					if (attributeName != null) {
+						errorMessage = attributeName + "are not configured and 'authentication' is  configured as public. If user='true' attribute is configured, it is mandatory to configure "+ attributeName +"and 'authentication' other than public.";
+					} else {
+						errorMessage = "'authentication' is  configured as public. If user='true' attribute is configured, it is mandatory to configure 'authentication' other than public.";
+					}
+				} else {
+					errorMessage = "DOS prevention attributes (threshold,duration,lockperiod,hip) are not configured . If user='true' attribute is configured, it is mandatory to configure DOS prevention attributes";
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isDurationLockperiodHipNotConfigured(Element urlElement){
+		if(urlElement.getAttribute("threshold")!=null) {
+			boolean isDurationNull = urlElement.getAttribute("duration")==null;
+			boolean isLockPeriodNull = urlElement.getAttribute("lock-period")==null;
+			boolean ishipNull = urlElement.getAttribute("hip")==null;
+			if(isDurationNull || (isLockPeriodNull && ishipNull)) {
+				String attributeName = null;
+				if(isDurationNull) {
+					attributeName = "'duration' ";
+				}
+				if(isLockPeriodNull && ishipNull) {
+					if(attributeName!=null) {
+						attributeName += "and 'lock-period' or 'hip' ";
+					}
+					attributeName = "'lock-period' or 'hip' ";
+				}
+				errorMessage = attributeName + "attribute is not configured. If 'threshold' attribute is configured, it is mandatory to configure "+ attributeName;
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isThresholdLockperiodHipNotConfigured(Element urlElement){
+		if(urlElement.getAttribute("duration")!=null) {
+			boolean isThresholdNull = urlElement.getAttribute("threshold")==null;
+			boolean isLockPeriodNull = urlElement.getAttribute("lock-period")==null;
+			boolean ishipNull = urlElement.getAttribute("hip")==null;
+			if(isThresholdNull || (isLockPeriodNull && ishipNull)) {
+				String attributeName = null;
+				if(isThresholdNull) {
+					attributeName = "'threshold' ";
+				}
+				if(isLockPeriodNull && ishipNull) {
+					if(attributeName!=null) {
+						attributeName += "and 'lock-period' or 'hip' ";
+					}
+					attributeName = "'lock-period' or 'hip' ";
+				}
+				errorMessage = attributeName + "attribute is not configured. If 'duration' attribute is configured, it is mandatory to configure "+ attributeName;
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isThresholdDurationNotConfigured(Element urlElement){
+		if(urlElement.getAttribute("lock-period")!=null) {
+			boolean isThresholdNull = urlElement.getAttribute("threshold")==null;
+			boolean isDurationNull = urlElement.getAttribute("duration")==null;
+			if(isThresholdNull || isDurationNull) {
+				String attributeName = null;
+				if(isThresholdNull) {
+					attributeName = "'threshold' ";
+				}
+				if(isDurationNull) {
+					if(attributeName!=null) {
+						attributeName += "and 'duration' ";
+					}
+					attributeName = "'duration' ";
+				}
+				errorMessage = attributeName + "attribute is not configured. If 'lock-period' attribute is configured, it is mandatory to configure "+ attributeName;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isMaxLengthInfiniteConfiguration(Element streamElement){
+		if(streamElement.getAttributeValue("max-len")!=null) {
+			if(getAttributeIntegerValue(streamElement,"max-len") ==-1) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isThresholdDurationNotConfiguredForHip(Element urlElement){
+		if(urlElement.getAttribute("hip")!=null) {
+			boolean isThresholdNull = urlElement.getAttribute("threshold")==null;
+			boolean isDurationNull = urlElement.getAttribute("duration")==null;
+			if(isThresholdNull || isDurationNull) {
+				String attributeName = null;
+				if(isThresholdNull) {
+					attributeName = "'threshold' ";
+				}
+				if(isDurationNull) {
+					if(attributeName!=null) {
+						attributeName += "and 'duration' ";
+					}
+					attributeName = "'duration' ";
+				}
+				errorMessage = attributeName + "attribute is not configured. If 'hip' attribute is configured, it is mandatory to configure "+ attributeName;
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	//Structs conditions
+	public boolean devModeConfigurationCheck(Element element)	{
+		if("struts.devMode".equals(element.getAttributeValue("name"))) {
+			 if(Boolean.parseBoolean(element.getAttributeValue("value"))) {
+				 return true;
+			 }
+		} 
+		return false;
+	}
+	
+	public boolean fullNameSpaceConfigurationCheck(Element element)	{
+		if("struts.mapper.alwaysSelectFullNamespace".equals(element.getAttributeValue("name"))) {
+			if(Boolean.parseBoolean(element.getAttributeValue("value"))) {
+			 	return true;
+		 	}
+		}
+		return false;
+	}
+	
+	//Web.xml conditions
+	public boolean checkIfSecurityFilterConfigured(Element webAppElement){
+		List <Element> filterElements = webAppElement.getChildren("filter");
+		for(Element filterElement:filterElements){
+			String filter_class = filterElement.getChild("filter-class").getText().trim();
+			boolean isFilterValueSecurityFilter = securityFilterClsName.equals(filter_class);
+			if(isFilterValueSecurityFilter){
+				return true;
+			}
+		}
+		
+		//If the filter is present in web-fragment.xml and if the web.xml has configured the web-fragment filter name then this shouldn't be shown as an issue.
+		boolean isWebFragmentFile = false;
+		if("web-fragment".equals(webAppElement.getDocument().getRootElement().getName())){
+			isWebFragmentFile = true;
+		}
+		if(!isWebFragmentFile && webFragmentName != null){
+			Element filterOrderingElement = webAppElement.getChild("absolute-ordering");
+			if(filterOrderingElement != null){
+				List<Element> nameElements = filterOrderingElement.getChildren("name");
+				for(Element nameElement : nameElements){
+					String filterName = nameElement.getText().trim();
+					boolean isFilterValueSecurityFilter = webFragmentName.equals(filterName);
+					if(isFilterValueSecurityFilter){
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean checkFilterOrder(Element webAppElement){
+		List <Element> filterElements  = webAppElement.getChildren("filter");
+		Map  <String,String>  filterNameMap = new HashMap  <String,String>();
+		for(Element filterEle : filterElements) {
+			String s= filterEle.getChild("filter-class").getText().trim();
+			if (securityFilterOrder.contains(s)) {
+				filterNameMap.put(s, filterEle.getChild("filter-name").getText().trim());
+			}
+		}
+		List <Element> filterMappingElements  = webAppElement.getChildren("filter-mapping");
+		Map  <String,Integer>  filterMap = new HashMap  <String,Integer>();
+		for(Element filterMapEle : filterMappingElements) {
+			filterMap.put(filterMapEle.getChild("filter-name").getText().trim(), Integer.parseInt(filterMapEle.getAttributeValue("START_LINE_NUMBER")));
+		}
+		if (filterMap.size() > 0) {
+			String filterName = filterNameMap.get(securityFilterClsName);
+			if(filterName != null) {
+				if (filterMap.get(filterName) == null) {
+					return false;
+				} else {
+					int lineNumber = filterMap.get(filterName);
+					for (String s : filterMap.keySet()) {
+						if (!filterNameMap.values().contains(s)) {
+							if (filterMap.get(s) < lineNumber) {
+								return false;
+							}
+						}
+					}
+				}
+			}
+		}
+		return true;
+	}
+	
+	public boolean checkFilterPattern(Element webAppElement){
+		List <Element> filterElements  = webAppElement.getChildren("filter");
+		String filterName = null;
+		for(Element filterEle : filterElements) {
+			String s= filterEle.getChild("filter-class").getText().trim();
+			if (s.equals(securityFilterClsName)) {
+				filterName = filterEle.getChild("filter-name").getText().trim();
+			}
+		}
+		List <Element> filterMappingElements  = webAppElement.getChildren("filter-mapping");
+		for(Element filterMapEle : filterMappingElements) {
+			if(filterMapEle.getChild("filter-name").getText().trim().equals(filterName)) {
+				if(!filterMapEle.getChild("url-pattern").getText().trim().equals("/*")) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	public boolean checkWildcardUrlsExclude(Element initParamElement){
+		if(((Element)initParamElement.getParent()).getChild("filter-class")!= null) {
+			if(((Element)initParamElement.getParent()).getChild("filter-class").getTextTrim().equals(securityFilterClsName)){
+				String paramName = initParamElement.getChild("param-name").getText().trim();
+				String paramValue= initParamElement.getChild("param-value").getText().trim();
+				if("exclude".equals(paramName) && paramValue.contains(".*")){
+				 	return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean authCSRFCheck(Element properties){
+		List<Element> propertyList = properties.getChildren("property");
+		for(Element propertyEle : propertyList) {
+			if(propertyEle.getAttributeValue("name").equals("disable.authcsrf")) {
+				return "true".equals(propertyEle.getAttributeValue("value"));
+			}
+		}
+		return false;
+	}
+	
+	public boolean authMigrationCheck(Element property){
+		if(property.getAttributeValue("name").equals("csrf.migration")) {
+			boolean isCsrfMigrationValueFalse = "true".equals(property.getAttributeValue("value"));
+			if(isCsrfMigrationValueFalse) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean checkDevelopmentMode(Element filterElement){
+			String filter_class = filterElement.getChild("filter-class").getText().trim();
+			boolean isFilterValueSecurityFilter = securityFilterClsName.equals(filter_class);
+			if(isFilterValueSecurityFilter){
+				List<Element> initParamList = filterElement.getChildren("init-param");
+				for(Element initParamEle : initParamList) {
+					boolean developmentMode = "development.mode".equals(initParamEle.getChild("param-name").getText().trim());
+					if(developmentMode) {
+						if("true".equals(initParamEle.getChild("param-value").getText().trim())) {
+							return true;
+						}
+					}
+				}
+			}
+		return false;
+	}
+	
+	public boolean checkTestMode(Element filterElement){
+			String filter_class = filterElement.getChild("filter-class").getText().trim();
+			boolean isFilterValueSecurityFilter = securityFilterClsName.equals(filter_class);
+			if(isFilterValueSecurityFilter){
+				List<Element> initParamList = filterElement.getChildren("init-param");
+				for(Element initParamEle : initParamList) {
+					boolean testMode = "test.mode".equals(initParamEle.getChild("param-name").getText().trim());
+					if(testMode) {
+						if("true".equals(initParamEle.getChild("param-value").getText().trim())) {
+							return true;
+						}
+					}
+				}
+			}
+		return false;
+	}
+	
+	public boolean devModeCheck(String key ,String value)	{
+		if("struts.devMode".equals(key)) {
+			 if(!"false".equals(value)) {
+				 return true;
+			 }
+		} 
+		return false;
+	}
+	
+	public boolean fullNameSpaceCheck(String key ,String value)	{
+		if("struts.mapper.alwaysSelectFullNamespace".equals(key)) {
+			if("true".equals(value)) {
+			 	return true;
+		 	}
+		}
+		return false;
+	}
+
+	public boolean isAllowAccessForConfigured(Element urlElement) {
+		    if(isAttributeNotNullInElementOrParent(urlElement,"allow-access-for")){
+		               return true;
+		            }
+        return false;
+        }
+		
+	public boolean isServiceConfiguredforThrottle(Element throttlesElement){
+			if(throttlesElement.getAttribute("scope")!=null) {
+				String scopeValue = throttlesElement.getAttributeValue("scope");
+				if(scopeValue!= null && scopeValue.equals("SERVICE")) {
+					return true;
+				}
+			}
+			return false;
+		}
+}

@@ -1,0 +1,1804 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--$Id: library.xml,v 1.11.6.2 2013/02/06 05:35:18 sivakumar Exp $-->
+
+<!-- ======================================================================
+				INIT TARGET
+====================================================================== -->
+
+<target name="init">
+<stopwatch name="timer1"/>
+<tstamp>
+<format property="day" pattern="MMM_dd_yyyy"/>
+<format property="today" pattern="MMM_dd"/>
+<format property="now" pattern="MMM_dd_HH_mm"/>
+<format property="year" pattern="yyyy"/>
+<format property="sec" pattern="HHmmss"/>
+<format property="msec" pattern="HHmmmS"/>
+</tstamp>
+<echo message="----------- ${product_name} ${product_version} ${year} ------------"/>
+<stopwatch name="timer1" action="total"/>
+<echo message="-----------total time ${timer1} ------------"/>
+</target>
+
+<!-- ======================================================================
+				PUTLABEL TARGET
+====================================================================== -->
+
+<target name="putlabel" depends="init">
+
+<property name="plabel" value="putlabel"/>
+<record name="${basedir}/buildlogs/${plabel}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${plabel}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${plabel}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+<propertycopy name="cvsroot" from="${val}_label_cvsroot" silent="false"/>
+<propertycopy name="package" from="${val}_label_pkg"     silent="false"/>
+<propertycopy name="colabel" from="${val}_label_tag"     silent="false"/>
+<propertycopy name="label"   from="${val}_build_label"   silent="false"/>
+
+<cvs cvsRoot="${cvsroot}"
+		 command="rtag -F -r${colabel} ${label}"
+		 package="${package}"
+		 failonerror="true"/>
+
+<record name="${basedir}/buildlogs/${plabel}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${plabel}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+				CHECKOUT TARGET
+====================================================================== -->
+
+<target name="checkout" depends="init">
+
+<property name="cout" value="checkout"/>
+<record name="${basedir}/buildlogs/${cout}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${cout}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${cout}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+<propertycopy name="cvsroot" from="${val}_cvsroot"  silent="false"/>
+<propertycopy name="package" from="${val}_co_mod"   silent="false"/>
+<propertycopy name="colabel" from="${val}_co_label" silent="false"/>
+<propertycopy name="codir"   from="${val}_co_dir"   silent="false"/>
+<propertycopy name="rootpass" from="${val}_cvs_password"   silent="true"/>
+<property name="hgclonedir" value="${codir}/components"/>
+<if>
+ <equals arg1="${cvsroot}" arg2=":pserver:anonymous@cm-server:/advent/projects/components" />
+ <then>
+        <if>
+             <available file="${hgclonedir}/.hg" type="dir"/>
+             <then>
+                    <var name="cvsroot" value="https://anonymous:anon@cmsuite.csez.zohocorpin.com/integ/components"/>
+                    <echo message="Directory ${hgclonedir} exists" />
+                    <exec dir="${hgclonedir}" executable="hg" failonerror="true">
+                          <arg line="--config http_proxy.no=cmsuite.csez.zohocorpin.com pull -u -r${colabel}"/>
+                    </exec>
+             </then>
+             <else>
+                   <var name="cvsroot" value="https://anonymous:anon@cmsuite.csez.zohocorpin.com/integ/components"/>
+           <if>
+                        <not>
+                                <available file="${codir}" type="dir"/>
+                        </not>
+                        <then>
+                             <mkdir dir="${codir}"/>
+                        </then>
+           </if>
+                   <exec dir="${codir}" executable="hg" failonerror="true">
+                       <arg line="--config http_proxy.no=cmsuite.csez.zohocorpin.com clone -r${colabel} https://anonymous:anon@cmsuite.csez.zohocorpin.com/integ/components"/>
+                   </exec>
+            </else>
+        </if>
+        <exec dir="${hgclonedir}" executable="hg" failonerror="true">
+          <arg line="parent --template '{node|short}'"/>
+          <redirector outputproperty="changesetval" errorproperty="errmsg">
+          </redirector>
+        </exec>
+
+        <copy todir="${codir}" overwrite="true" includeEmptyDirs="false">
+                <fileset dir="${hgclonedir}" includes="**" excludes=""/>
+    </copy>
+    <echo message="${colabel}=${changesetval}${line.separator}" file="${basedir}/changeset.txt" append="true"/>
+    <echo message="${colabel}=${errmsg}${line.separator}" file="${basedir}/errormsg.txt" append="true"/>
+ </then>
+ <else>
+
+        <cvspass cvsroot="${cvsroot}" password="${rootpass}"/>
+        <cvs cvsRoot="${cvsroot}"
+                 package="${package}"
+                 tag="${colabel}"
+                 dest="${codir}"
+                 failonerror="true"/>
+ </else>
+</if>
+
+<record name="${basedir}/buildlogs/${cout}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${cout}_${msec}.log" action="stop"/>
+<echo message="${val}_co_mod=${package}#${val}_co_label=${colabel}#${val}_cvsroot=${cvsroot}" file="${basedir}/checkout.txt" append="true"/>
+<echo message="${line.separator}" file="${basedir}/checkout.txt" append="true"/>
+</target>
+
+<!-- ======================================================================
+				GETURL TARGET
+====================================================================== -->
+
+<target name="geturl" depends="init">
+
+<property name="gurl" value="geturl"/>
+<record name="${basedir}/buildlogs/${gurl}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${gurl}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${gurl}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+<propertycopy name="url_src"  from="${val}_url"      silent="true"/>
+<propertycopy name="url_dest" from="${val}_dest_zip" silent="true"/>
+
+<echo message="${val}"/>
+<echo message="${url_src}"/>
+<echo message="${url_dest}"/>
+
+<dirname property="url.dest.dir" file="${url_dest}"/>
+<mkdir dir="${url.dest.dir}"/>
+
+<get src="${url_src}"
+dest="${url_dest}"
+verbose="true"
+usetimestamp="false"/>
+
+<record name="${basedir}/buildlogs/${gurl}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${gurl}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ==================================================================== -->
+<!-- ============ DDTool ( data-dictionary.xml parser )  ================ -->
+<!-- ==================================================================== -->
+
+<target name="ddparser" description="java -dd &lt;file&gt; -outDir &lt;directory&gt; -pkg &lt;packagename&gt; -template &lt;templatefile&gt;" depends="init">
+
+<property name="ddpar" value="ddparser"/>
+<record name="${basedir}/buildlogs/${ddpar}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${ddpar}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${ddpar}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+	<propertycopy name="dd_clp" from="ddclsp" silent="true"/>        
+	<propertycopy name="dd_classname" from="ddclassname" silent="true"/>        
+	<propertycopy name="dd_ip" from="${val}_ddinp" silent="true"/>        
+	<propertycopy name="dd_template" from="ddtemplate" silent="true"/>        
+	<propertycopy name="dd_op" from="${val}_ddout" silent="true"/>        
+
+	<java
+              classpath="${dd_clp}"
+              fork="yes"
+              failonerror="true"
+              classname="${dd_classname}">
+              <arg line="-dd ${dd_ip} -template ${dd_template} -outDir ${dd_op}"/>
+         </java>
+
+<record name="${basedir}/buildlogs/${ddpar}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${ddpar}_${msec}.log" action="stop"/>
+</target>
+
+
+<!-- ======================================================================
+				COMPILE TARGET
+====================================================================== -->
+
+<target name="compilesrc" depends="init">
+
+<property name="csrc" value="compilesrc"/>
+<record name="${basedir}/buildlogs/${csrc}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${csrc}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${csrc}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+<if>
+<equals arg1="${common_classdir}" arg2="true"/>
+<then>
+<property name="classdir" value="${classes_dir}"/>
+</then>
+<else>
+<propertycopy name="classdir" from="${val}_classes_dir" silent="true"/>
+</else>
+</if>
+
+
+<if>
+<equals arg1="${common_classpath}" arg2="true"/>
+<then>
+<property name="clp" value="${classpath}"/>
+</then>
+<else>
+<propertycopy name="clp" from="${val}_classpath" silent="true"/>
+</else>
+</if>
+
+<propertycopy name="src" from="${val}_compile_includes" silent="true"/>
+<propertycopy name="src_excl" from="${val}_compile_excludes" silent="true"/>
+<propertycopy name="executable" from="${val}_javac_exe" silent="true"/>
+<propertycopy name="compiler" from="${val}_javac_compiler" silent="true"/>
+<propertycopy name="nowarn" from="${val}_nowarn" silent="true"/>
+
+<echo message="${val}"/>
+<echo message="${src}"/>
+<echo message="${clp}"/>
+<echo message="${source_basedir}"/>
+<echo message="${classdir}"/>
+<echo message="${executable}"/>
+<echo message="${compiler}"/>
+<echo message="${nowarn}"/>
+
+
+<mkdir dir="${classdir}"/>
+
+<if>
+ <isset property="executable"/>
+ <then>
+ <javac srcdir="${source_basedir}"
+        includes="${src}"
+        excludes="${src_excl}"
+        destdir="${classdir}"
+        classpath="${clp}"
+        debug="${debug}"
+        optimize="${optimize}"
+        deprecation="${deprecation}"
+        fork="yes"
+        executable="${executable}"
+        nowarn="${nowarn}"
+ />
+ </then>
+ <else>
+ <javac srcdir="${source_basedir}"
+	includes="${src}"
+        excludes="${src_excl}"
+	destdir="${classdir}"
+	classpath="${clp}"
+	debug="${debug}"
+	optimize="${optimize}"
+	deprecation="${deprecation}"
+        nowarn="${nowarn}"
+ />
+</else>
+ </if>
+
+<record name="${basedir}/buildlogs/${csrc}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${csrc}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+				GEN_JAR TARGET
+====================================================================== -->
+
+<target name="genjar" depends="init">
+<property name="gjar" value="genjar"/>
+<record name="${basedir}/buildlogs/${gjar}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${gjar}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${gjar}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="destfile" from="${val}_jar_file" silent="false"/>
+<propertycopy name="jarincludes" from="${val}_jar_includes" silent="false"/>
+<propertycopy name="jarexcludes" from="${val}_jar_excludes" silent="true"/>
+<propertycopy name="jarsrcdir" from="${val}_jar_srcdir" silent="false"/>
+<propertycopy name="jarupdate" from="${val}_jar_update" silent="true"/>
+<propertycopy name="jarmanifest" from="${val}_jar_manifest" silent="true"/>
+
+<dirname property="jar.dest.dir" file="${destfile}"/>
+<mkdir dir="${jar.dest.dir}"/>
+<mkdir dir="${jarsrcdir}"/>
+
+<echo message="${val}:jarcreation"/>
+<echo message="jarfile:-${destfile}"/>
+<echo message="fileincludes:-${jarincludes}"/>
+<echo message="fileexcludes:-${jarexcludes}"/>
+<echo message="jarsrcdir:-${jarsrcdir}"/>
+<echo message="Manifest:-${jarmanifest}"/>
+
+<available file="${destfile}" type="file"
+           property="jar_present"/>
+
+
+<if>
+  <length length="0" when="greater">
+  <fileset dir="${jarsrcdir}" followsymlinks="false"/>
+</length>
+  <then>
+<if>
+<equals arg1="${jarupdate}" arg2="true"/>
+<then>
+<if>
+<isset property="jar_present"/>
+<then>
+<if>
+        <isset property="jarmanifest"/>
+        <then>
+       <jar destfile="${destfile}" basedir="${jarsrcdir}" includes="${jarincludes}" excludes="${jarexcludes}" manifest="${jarmanifest}" update="true" />
+        </then>
+        <else>
+        <jar destfile="${destfile}" basedir="${jarsrcdir}" includes="${jarincludes}" excludes="${jarexcludes}" update="true" />
+        </else>
+        </if>
+</then>
+<else>
+<echo message="&lt;b&gt; while updating ${destfile} - is not available &lt;/b&gt; ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+<echo message="while updating ${destfile} - is not available ...&lt;br&gt;"/>
+
+</else>
+</if>
+</then>
+<else>
+        <if>
+         <isset property="jarmanifest"/>
+        <then>
+         <jar destfile="${destfile}" basedir="${jarsrcdir}" manifest="${jarmanifest}" includes="${jarincludes}" excludes="${jarexcludes}" />
+        </then>
+        <else>
+            <jar destfile="${destfile}" basedir="${jarsrcdir}" includes="${jarincludes}" excludes="${jarexcludes}"/>
+        </else>
+        </if>
+</else>
+</if>
+
+</then>
+  <else>
+      <echo message="&lt;b&gt; while creating ${destfile} - source directory (${jarsrcdir}) is not present in that location &lt;/b&gt; ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+      <echo message="while creating ${destfile} - source directory (${jarsrcdir}) is not present in that location ...&lt;br&gt;"/>
+  </else>
+</if>
+<record name="${basedir}/buildlogs/${gjar}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${gjar}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+				UNZIP TARGET
+====================================================================== -->
+
+<target name="unzip" depends="init">
+<property name="uzip" value="unzip"/>
+<record name="${basedir}/buildlogs/${uzip}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${uzip}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${uzip}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="unzip_srcdir" from="${val}_unzip_srcdir" silent="false"/>
+<propertycopy name="unzip_todir" from="${val}_unzip_todir" silent="false"/>
+<propertycopy name="unzip_include" from="${val}_files_include" silent="false"/>
+<propertycopy name="unzip_exclude" from="${val}_files_exclude" silent="true"/>
+<propertycopy name="pattern_includes" from="${val}_pattern_include" silent="true"/>
+<propertycopy name="pattern_excludes" from="${val}_pattern_exclude" silent="true"/>
+
+<echo message="${val}"/>
+<echo message="${unzip_srcdir}"/>
+<echo message="${unzip_todir}"/>
+<echo message="${unzip_include}"/>
+<echo message="${unzip_exclude}"/>
+<echo message="${pattern_includes}"/>
+<echo message="${pattern_excludes}"/>
+
+<mkdir dir="${unzip_todir}"/>
+<mkdir dir="${unzip_srcdir}"/>
+<if>
+                <isset property="unzip_include"/>
+                <then>
+                                <property name="file_includes" value="${unzip_include}"/>
+                                <property name="file_excludes" value="${unzip_exclude}"/>
+                </then>
+                <else>
+                                <property name="file_includes" value="**"/>
+                </else>
+</if>
+
+<if>
+                <isset property="pattern_includes"/>
+                <then>
+                        <unzip dest="${unzip_todir}">
+                                <fileset dir="${unzip_srcdir}" includes="${file_includes}" excludes="${file_excludes}"/>
+                                <patternset includes="${pattern_includes}" excludes="${pattern_excludes}"/>
+                        </unzip>
+                </then>
+                <else>
+                       <unzip dest="${unzip_todir}">
+                                <fileset dir="${unzip_srcdir}" includes="${file_includes}" excludes="${file_excludes}"/>
+                        </unzip>
+                </else>
+</if>
+
+</target>
+
+<!-- ======================================================================
+				UNTAR TARGET
+====================================================================== -->
+
+<target name="untar" depends="init">
+<property name="utar" value="untar"/>
+<record name="${basedir}/buildlogs/${utar}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${utar}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${utar}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="targz_src" from="${val}_targz_file" silent="true"/>
+<propertycopy name="tar_src" from="${val}_tar_file" silent="true"/>
+<propertycopy name="tar_dest" from="${val}_tar_todir" silent="true"/>
+
+<echo message="${val}"/>
+<echo message="${targz_src}"/>
+<echo message="${tar_src}"/>
+<echo message="${tar_dest}"/>
+
+<if>
+		<isset property="targz_src"/>
+		<then>
+					<gunzip src="${targz_src}"/>
+		</then>
+</if>
+
+
+<untar dest="${tar_dest}" src="${tar_src}"/>
+
+<record name="${basedir}/buildlogs/${utar}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${utar}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+                                AVAILABLE TASK TARGET
+====================================================================== -->
+
+<target name="available" depends="init">
+<property name="avail" value="available"/>
+<record name="${basedir}/buildlogs/${avail}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${avail}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${avail}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+<propertycopy name="srcpath" from="${val}_avail_file_or_dir" silent="false"/>
+<propertycopy name="avail_type" from="${val}_avail_type" silent="false"/>
+
+<echo message="copy task param:-${val}"/>
+<echo message="avail_type:-${avail_type}"/>
+<echo message="srcpath:-${srcpath}"/>
+
+<available file="${srcpath}" type="${avail_type}"
+           property="src_present"/>
+<if>
+<isset property="src_present"/>
+ <then>
+<echo message="source ${avail_type} - ${srcpath} is available in that location ..."/>
+</then>
+<else>
+<echo message="&lt;b&gt; source ${avail_type} - ${srcpath} is not available in that location &lt;/b&gt; ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+<fail message="source ${avail_type} - ${srcpath} is not available in that location"/>
+</else>
+</if>
+
+<record name="${basedir}/buildlogs/${avail}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${avail}_${msec}.log" action="stop"/>
+</target>
+
+
+<!-- ======================================================================
+				COPYTASK TARGET
+====================================================================== -->
+
+<target name="copy" depends="init">
+<property name="cpy" value="copy"/>
+<record name="${basedir}/buildlogs/${cpy}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${cpy}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${cpy}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+<propertycopy name="destdir" from="${val}_copy_todir" silent="false"/>
+<propertycopy name="srcdir" from="${val}_fileset_dir" silent="false"/>
+<propertycopy name="pkgincludes" from="${val}_copy_includes" silent="false"/>
+<propertycopy name="pkgexcludes" from="${val}_copy_excludes" silent="true"/>
+<propertycopy name="pkgmapper" from="${val}_mapper_type" silent="true"/>
+<propertycopy name="mapperfrom" from="${val}_mapper_from" silent="true"/>
+<propertycopy name="mapperto" from="${val}_mapper_to" silent="true"/>
+
+<echo message="copy task param:-${val}"/>
+<echo message="todir:-${destdir}"/>
+<echo message="srcdir:-${srcdir}"/>
+<echo message="includes:-${pkgincludes}"/>
+<echo message="excludes:-${pkgexcludes}"/>
+<echo message="mapper type:-${pkgmapper}"/>
+<echo message="mapper from:-${mapperfrom}"/>
+<echo message="mapper to:-${mapperto}"/>
+
+<available file="${srcdir}" type="dir"
+           property="src_dir_present"/>
+<if>
+<isset property="src_dir_present"/>
+ <then>
+<if>
+		<isset property="pkgmapper"/>
+	<then>
+				<mkdir dir="${destdir}"/>
+				<copy todir="${destdir}" overwrite="true" includeEmptyDirs="false">
+					<fileset dir="${srcdir}" includes="${pkgincludes}" excludes="${pkgexcludes}"/> 
+				<mapper type="${pkgmapper}" from="${mapperfrom}" to="${mapperto}"/>
+				</copy>
+
+	</then>
+	<else>
+				<mkdir dir="${destdir}"/>
+				<copy todir="${destdir}" overwrite="true">
+				<fileset dir="${srcdir}" includes="${pkgincludes}" excludes="${pkgexcludes}"/> 
+				</copy>
+	</else>
+</if>
+</then>
+<else>
+<echo message="&lt;b&gt; while copying files from ${srcdir} to ${destdir} :  source directory (${srcdir}) is not present in that location &lt;/b&gt; ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+<echo message="while copying files from ${srcdir} to ${destdir} :  source directory (${srcdir}) is not present in that location ..&lt;br&gt;"/>
+</else>
+</if>
+
+<record name="${basedir}/buildlogs/${cpy}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${cpy}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+			COPYFILE TARGET
+====================================================================== -->
+
+<target name="copyfile" depends="init">
+<property name="cpyfile" value="copyfile"/>
+<record name="${basedir}/buildlogs/${cpyfile}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${cpyfile}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${cpyfile}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="srcfile" from="${val}_copy_src_file" silent="false"/>
+<propertycopy name="destfile" from="${val}_copy_tofile" silent="false"/>
+<propertycopy name="ovwrite" from="${val}_copy_overwrite" silent="true"/>
+
+<echo message="source file :-${srcfile}"/>
+<echo message="destination file:-${destfile}"/>
+
+<available file="${srcfile}" type="file"
+           property="src_file_present"/>
+<if>
+<isset property="src_file_present"/>
+ <then>
+
+<copy file="${srcfile}" tofile="${destfile}" overwrite="${ovwrite}"/>
+</then>
+<else>
+<echo message="&lt;b&gt; while copying file from ${srcfile} to ${destfile} :  source file (${srcfile}) is not present in that location &lt;/b&gt; ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+<echo message="while copying file from ${srcfile} to ${destfile} :  source file (${srcfile}) is not present in that location ...&lt;br&gt;"/>
+</else>
+</if>
+
+<record name="${basedir}/buildlogs/${cpyfile}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${cpyfile}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+				MOVEFILE TARGET
+====================================================================== -->
+
+<target name="movefile" depends="init">
+<property name="mfile" value="movefile"/>
+<record name="${basedir}/buildlogs/${mfile}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${mfile}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${mfile}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="srcfile" from="${val}_move_src_file" silent="false"/>
+<propertycopy name="destfile" from="${val}_move_tofile" silent="false"/>
+
+<echo message="source file :-${srcfile}"/>
+<echo message="destination file:-${destfile}"/>
+
+
+<available file="${srcfile}" type="file"
+           property="src_file_present"/>
+<if>
+<isset property="src_file_present"/>
+ <then>
+<move file="${srcfile}" tofile="${destfile}"/>
+</then>
+<else>
+<echo message="&lt;b&gt; while moving file from ${srcfile} to ${destfile} :  source file (${srcfile}) is not present in that location &lt;/b&gt; ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+<echo message="while moving file from ${srcfile} to ${destfile} :  source file (${srcfile}) is not present in that location ...&lt;br&gt;"/>
+      <echo message="SRC FILE NOT PRESENT"/>
+</else>
+</if>
+
+<record name="${basedir}/buildlogs/${mfile}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${mfile}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+		   MOVEDIR TARGET		  
+====================================================================== -->
+
+<target name="movedir" depends="init">
+<property name="movd" value="movedir"/>
+<record name="${basedir}/buildlogs/${movd}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${movd}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${movd}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="movetodir" from="${val}_move_todir" silent="false"/>
+<propertycopy name="movesrcdir" from="${val}_move_fileset_dir" silent="false"/>
+<propertycopy name="mv_includes" from="${val}_move_includes" silent="false"/>
+<propertycopy name="mv_excludes" from="${val}_move_excludes" silent="false"/>
+
+<available file="${movesrcdir}" type="dir"
+           property="src_dir_present"/>
+<if>
+<isset property="src_dir_present"/>
+ <then>
+
+<move todir="${movetodir}">
+			<fileset dir="${movesrcdir}" includes="${mv_includes}" excludes="${mv_excludes}"/>
+</move>
+</then>
+<else>
+<echo message="&lt;b&gt; while moving directory from ${movesrcdir} to ${movetodir} :  source directory (${smovesrcdir}) is not present in that location &lt;/b&gt; ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+<echo message="while movin directory from ${movesrcdir} to ${movetodir} :  source directory (${smovesrcdir}) is not present in that location ..&lt;br&gt;"/>
+</else>
+</if>
+						
+
+<record name="${basedir}/buildlogs/${movd}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${movd}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+				REPLACE DIR TARGET
+====================================================================== -->
+
+<target name="replacedir" depends="init">
+<property name="repdir" value="replacedir"/>
+<record name="${basedir}/buildlogs/${repdir}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${repdir}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${repdir}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+<propertycopy name="dir" from="${val}_dir" silent="false"/>
+<propertycopy name="tok" from="${val}_tok" silent="false"/>
+<propertycopy name="value" from="${val}_value" silent="false"/>
+<propertycopy name="pkgincludes" from="${val}_rep_includes" silent="false"/>
+<propertycopy name="pkgexcludes" from="${val}_rep_excludes" silent="false"/>
+
+<echo message="replace task param:-${val}"/>
+<echo message="dir:-${dir}"/>
+<echo message="token:-${tok}"/>
+<echo message="value:-${value}"/>
+<echo message="includes:-${pkgincludes}"/>
+<echo message="excludes:-${pkgexcludes}"/>
+
+<available file="${dir}" type="dir"
+           property="src_dir_present"/>
+<if>
+<isset property="src_dir_present"/>
+ <then>
+
+	<replace
+		 dir="${dir}"
+		 token="${tok}"
+		 value="${value}"
+		 includes="${pkgincludes}"
+		 excludes="${pkgexcludes}"/> 
+
+</then>
+<else>
+<echo message="&lt;b&gt; replacing source directory (${dir}) is not present in that location &lt;/b&gt; ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+<echo message="replacing source directory (${dir}) is not present in that location ..&lt;br&gt;"/>
+</else>
+</if>
+
+<record name="${basedir}/buildlogs/${repdir}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${repdir}_${msec}.log" action="stop"/>
+</target>
+
+
+<!-- ======================================================================
+				REPLACE FILE TARGET
+====================================================================== -->
+
+<target name="replacefile" depends="init">
+<property name="repfile" value="replacefile"/>
+<record name="${basedir}/buildlogs/${repfile}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${repfile}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${repfile}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+<propertycopy name="file" from="${val}_file" silent="false"/>
+<propertycopy name="tok" from="${val}_tok" silent="false"/>
+<propertycopy name="value" from="${val}_value" silent="false"/>
+<propertycopy name="pkgincludes" from="${val}_rep_includes" silent="true"/>
+<propertycopy name="pkgexcludes" from="${val}_rep_excludes" silent="true"/>
+
+<echo message="replace task param:-${val}"/>
+<echo message="dir:-${dir}"/>
+<echo message="token:-${tok}"/>
+<echo message="value:-${value}"/>
+<echo message="includes:-${pkgincludes}"/>
+<echo message="excludes:-${pkgexcludes}"/>
+
+<available file="${file}" type="file"
+           property="src_file_present"/>
+<if>
+<isset property="src_file_present"/>
+ <then>
+
+	<replace
+		 file="${file}"
+		 token="${tok}"
+		 value="${value}"
+		 includes="${pkgincludes}"
+		 excludes="${pkgexcludes}"/>
+ </then> 
+<else>
+<echo message="&lt;b&gt; replacing source file (${file}) is not present in that location &lt;/b&gt; ...&lt;br&gt;" file="${basedir}/process.html" append=
+"yes"/>
+<echo message="replacing source file (${file}) is not present in that location ..&lt;br&gt;"/>
+</else>
+</if>
+
+<record name="${basedir}/buildlogs/${repfile}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${repfile}_${msec}.log" action="stop"/>
+</target>
+
+
+<!-- ======================================================================
+		CHMOD TARGET
+====================================================================== -->
+
+<target name="chmod" depends="init">
+<property name="cmod" value="chmod"/>
+<record name="${basedir}/buildlogs/${cmod}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${cmod}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${cmod}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="dirname" from="${val}_chmod_dir" silent="false"/>
+<propertycopy name="uperm" from="${val}_chmod_perm" silent="false"/>
+<propertycopy name="files_includes" from="${val}_chmod_includes" silent="false"/>
+
+<chmod dir="${dirname}" perm="${uperm}" includes="${files_includes}"/>
+
+<record name="${basedir}/buildlogs/${cmod}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${cmod}_${msec}.log" action="stop"/>
+</target>
+
+
+<!-- ======================================================================
+		   MKDIR TARGET		  
+====================================================================== -->
+<target name="mkdir" depends="init">
+<property name="cdir" value="mkdir"/>
+<record name="${basedir}/buildlogs/${cdir}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${cdir}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${cdir}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="dirname" from="${val}_dirname" silent="false"/>
+
+<mkdir dir="${dirname}"/>
+
+<record name="${basedir}/buildlogs/${cdir}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${cdir}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+		  	EXEC	 TARGET 
+====================================================================== -->
+<target name="exec" depends="init">
+<property name="exc" value="exec"/>
+<record name="${basedir}/buildlogs/${exc}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${exc}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${exc}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="execdir" from="${val}_exec_dir" silent="false"/>
+<propertycopy name="cmd" from="${val}_exec_command" silent="false"/>
+<propertycopy name="arguments" from="${val}_exec_args" silent="false"/>
+<propertycopy name="appendopt" from="${val}_exec_append" silent="true"/>
+<propertycopy name="outfile" from="${val}_exec_output" silent="true"/>
+
+<if>
+        <isset property="appendopt"/>
+    <then>
+            <exec dir="${execdir}" executable="${cmd}" failonerror="true" append="${appendopt}" output="${outfile}">
+                <arg line="${arguments}"/>
+            </exec>
+    </then>
+    <else>
+            <exec dir="${execdir}" executable="${cmd}" failonerror="true">
+                <arg line="${arguments}"/>
+            </exec>
+    </else>
+</if>
+
+<record name="${basedir}/buildlogs/${exc}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${exc}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+		  	ZIPTASK		 TARGET 
+====================================================================== -->
+
+<target name="ziptask" depends="init">
+<property name="azip" value="ziptask"/>
+<record name="${basedir}/buildlogs/${azip}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${azip}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${azip}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="exec_dir" from="${val}_execdir" silent="false"/>
+<propertycopy name="zipfile" from="${val}_zip_name" silent="false"/>
+<propertycopy name="zipdir" from="${val}_dir_tozip" silent="false"/>
+<propertycopy name="zip_exclude" from="${val}_zip_exclude" silent="false"/>
+
+
+<exec dir="${exec_dir}" executable="zip" failonerror="true">
+			<arg line="-ry"/>
+			<arg line="${zipfile}"/>
+			<arg line="${zipdir}"/>
+			<arg line="${zip_exclude}"/>
+</exec>
+
+<record name="${basedir}/buildlogs/${azip}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${azip}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+		  	    JAVATASK TARGET		  
+====================================================================== -->
+
+<target name="javatask" depends="init">
+<property name="jtask" value="javatask"/>
+<record name="${basedir}/buildlogs/${jtask}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${jtask}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${jtask}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="javaclp" from="${val}_java_classpath" silent="false"/>
+<propertycopy name="javacls" from="${val}_java_class" silent="false"/>
+<propertycopy name="args"    from="${val}_java_args" silent="false"/>
+<echo message="${javaclp}"/>
+<java classpath="${javaclp}"
+			fork="yes"
+			classname="${javacls}"
+			failonerror="true">
+	
+				<arg line="${args}"/>
+
+</java>
+
+<record name="${basedir}/buildlogs/${jtask}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${jtask}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+		  	    JDOC TARGET		  
+====================================================================== -->
+
+<target name="jdoc" depends="init">
+<property name="docj" value="jdoc"/>
+<record name="${basedir}/buildlogs/${docj}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${docj}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${docj}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="srcpath"  from="${val}_sourcepath"     silent="false"/>
+<propertycopy name="clpath"   from="${val}_jdoc_classpath" silent="false"/>
+<propertycopy name="dest_dir" from="${val}_destdir"        silent="false"/>
+<propertycopy name="wtitle"   from="${val}_windowtitle"    silent="false"/>
+<propertycopy name="dtitle"   from="${val}_doctitle" 		   silent="false"/>
+<propertycopy name="auth" 	  from="${val}_author" 				 silent="false"/>
+<propertycopy name="header"   from="${val}_header" 				 silent="false"/>
+<propertycopy name="footer"   from="${val}_footer" 				 silent="false"/>
+<propertycopy name="pblic"    from="${val}_public" 				 silent="false"/>
+<propertycopy name="pkg"      from="${val}_package" 			 silent="false"/>
+<propertycopy name="prtd"     from="${val}_protected"			 silent="false"/>
+<propertycopy name="prvt"     from="${val}_private"				 silent="false"/>
+<propertycopy name="jv_use"   from="${val}_use"						 silent="false"/>
+<propertycopy name="oview"   from="${val}_overview"						 silent="true"/>
+<propertycopy name="year"   from="${val}_year"						 silent="true"/>
+<propertycopy name="maxMemory" from="${val}_maxmemory" silent="true"/>
+
+<javadoc
+		classpath="${clpath}"
+		destdir="${dest_dir}"
+		windowtitle="${wtitle}"
+		splitindex="no"
+		doctitle="${dtitle}"
+		author="${auth}"
+		Header="${header}"
+		Footer="${footer}"
+		public="${pblic}"
+		package="${pkg}"
+		protected="${prtd}"
+		private="${prvt}"
+		use="${jv_use}"
+		maxmemory="${maxMemory}"
+		failonerror="true"
+		verbose="true">
+		<packageset dir="${srcpath}" defaultexcludes="yes"
+				includes="**" excludes=""/>
+		<bottom><![CDATA[<i>Copyright &#169; ${year} ZOHO Corp., All Rights Reserved.</i>]]></bottom>
+</javadoc>
+
+<record name="${basedir}/buildlogs/${docj}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${docj}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+				DEL TARGET {to delete file or directory}
+====================================================================== -->
+
+<target name="del" depends="init">
+<property name="remov" value="del"/>
+<record name="${basedir}/buildlogs/${remov}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${remov}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${remov}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="deldir"   from="${val}_del_fileset_dir" silent="false"/>
+<propertycopy name="delfiles" from="${val}_delete_includes" silent="false"/>
+<propertycopy name="delexcludes" from="${val}_delete_excludes" silent="true"/>
+
+<echo message="${deldir}"/>
+
+<if>
+<equals arg1="${deldir}" arg2="${user.home}"/>
+<then>
+<echo message="${deldir} is m/c home dir, Please provide other dir "/>
+<fail message="Cannot delete ${user.home} directory.It is machine home directory"/>
+</then>
+</if>
+
+<delete verbose="true" includeEmptyDirs="true">
+	<fileset dir="${deldir}" includes="${delfiles}" excludes="${user.home}/** ${delexcludes} "/>
+</delete>
+
+<record name="${basedir}/buildlogs/${remov}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${remov}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+                        ECHO TARGET
+====================================================================== -->
+
+<target name="eco" depends="init">
+	<property name="eko" value="eco"/>
+	<record name="${basedir}/buildlogs/${eko}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${eko}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${eko}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+	<propertycopy name="msg"   from="${val}_eco_msg" silent="true"/>
+	<propertycopy name="wfile" from="${val}_eco_file" silent="true"/>
+	<propertycopy name="opt" from="${val}_eco_opt" silent="true"/>
+
+	<echo message="${wfile}"/>
+
+	<echo message="${msg}${line.separator}" file="${wfile}" append="${opt}"/>
+
+<record name="${basedir}/buildlogs/${eko}_${msec}_err.log" action="stop"/>
+	<record name="${basedir}/buildlogs/${eko}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+        FIXCRLF TARGET
+====================================================================== -->
+
+<target name="ffdos" depends="init">
+	<property name="crlf" value="ffdos"/>
+	<record name="${basedir}/buildlogs/${crlf}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${crlf}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${crlf}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+	<propertycopy name="ffdir" from="${val}_ffdos_dir" silent="false"/>
+	<propertycopy name="ff_includes" from="${val}_ffdos_includes" silent="false"/>
+
+	<fixcrlf srcDir="${ffdir}" eol="crlf" includes="${ff_includes}"/>
+<record name="${basedir}/buildlogs/${crlf}_${msec}_err.log" action="stop"/>
+	<record name="${basedir}/buildlogs/${crlf}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+        ANTCALL TARGET
+====================================================================== -->
+
+<target name="antfile" depends="init">
+
+	<property name="logant" value="antfile"/>
+<record name="${basedir}/buildlogs/${logant}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${logant}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${logant}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+	<propertycopy name="ant_file" from="${val}_antfile" silent="false"/>
+	<propertycopy name="ant_dir" from="${val}_antdir" silent="false"/>
+	<propertycopy name="ant_target" from="${val}_anttarget" silent="true"/>
+	
+	
+	<if>
+     <isset property="ant_target"/>
+     <then>
+					<ant antfile="${ant_file}" dir="${ant_dir}" target="${ant_target}"/>
+		 </then>
+     <else>
+					<ant antfile="${ant_file}" dir="${ant_dir}"/>
+     </else>
+</if>
+
+
+
+	
+	<record name="${basedir}/buildlogs/${logant}_${msec}_err.log" action="stop"/>
+	<record name="${basedir}/buildlogs/${logant}_${msec}.log" action="stop"/>
+
+</target>
+
+<!-- ======================================================================
+          XSLT TASK
+====================================================================== -->
+
+<target name="xslttask" depends="init">
+
+	<property name="xsltlog" value="xslttask"/>
+<record name="${basedir}/buildlogs/${xsltlog}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${xsltlog}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${xsltlog}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+	<propertycopy name="xslt_style" from="${val}_xsltfile" silent="true"/>
+	<propertycopy name="xslt_inp" from="${val}_xslt_input" silent="true"/>
+	<propertycopy name="xslt_op" from="${val}_xslt_output" silent="true"/>
+	<propertycopy name="dtd_pbid" from="${val}_dtd_public_id" silent="true"/>
+	<propertycopy name="dtd_loc" from="${val}_dtd_location" silent="true"/>
+
+<xslt style="${xslt_style}" in="${xslt_inp}" out="${xslt_op}" force="true">
+        <xmlcatalog>
+                <dtd publicId="${dtd_pbid}" location="${dtd_loc}"/>
+        </xmlcatalog>
+</xslt>
+
+	<record name="${basedir}/buildlogs/${xsltlog}_${msec}_err.log" action="stop"/>
+	<record name="${basedir}/buildlogs/${xsltlog}_${msec}.log" action="stop"/>
+</target>
+
+<!-- ======================================================================
+                               SIGNJAR  TARGET
+====================================================================== -->
+
+<target name="signjar" depends="init">
+<property name="sjar" value="signjar"/>
+<record name="${basedir}/buildlogs/${sjar}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${sjar}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${sjar}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+<propertycopy name="jarfile" from="${val}_jar_file" silent="false"/>
+<propertycopy name="keyalias" from="${val}_jar_alias" silent="false"/>
+<propertycopy name="keystorepass" from="${val}_jar_storepass" silent="false"/>
+<propertycopy name="domain" from="${val}_sitename" silent="false"/>
+<propertycopy name="product" from="${val}_product" silent="false"/>
+
+<echo message="${val}"/>
+<echo message="${jarfile}"/>
+<echo message="${keyalias}"/>
+<echo message="${keystorepass}"/>
+<echo message="${domain}"/>
+<echo message="${product}"/>
+
+
+          <delete file="${user.home}/.keystore"/>
+
+          <genkey alias="${keyalias}" storepass="${keystorepass}"
+                                    dname="CN=${domain}, OU=${product}, O=AdventNetInc C=India"/>
+
+          <signjar jar="${jarfile}" alias="${keyalias}" storepass="${keystorepass}"/>
+
+<record name="${basedir}/buildlogs/${sjar}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${sjar}_${msec}.log" action="stop"/>
+
+</target>
+
+
+<!-- ==================================================================
+
+                  TOUCH TARGET
+============================================================================= -->
+
+<target name="touch" depends="init">
+<property name="touc" value="touch"/>
+<record name="${touch}_${msec}.log" action="start" loglevel="info"/>
+
+<propertycopy name="filename" from="${val}_new_file" silent="false"/>
+
+  <touch file="${filename}"/>
+
+<record name="${touch}_${msec}.log" action="stop"/>
+</target>
+
+<!-- =========================================================================
+
+		RMIC TARGET
+================================================================================ -->
+
+<target name="rmictask" depends="init">
+<property name="rmictsk" value="rmictask"/>
+<record name="${basedir}/buildlogs/${rmictsk}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${rmictsk}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${rmictsk}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+<propertycopy name="rmicclass" from="${val}_rmic_class" silent="false"/>
+<propertycopy name="rmicclasspath" from="${val}_rmic_classpath" silent="false"/>
+<propertycopy name="rmicsrcclassfile" from="${val}_rmic_classfilepath" silent="true"/>
+<propertycopy name="rmicclassesdir" from="${val}_rmic_classesdir" silent="false"/>
+
+<echo message="${val}"/>
+<echo message="${rmicclass}"/>
+<echo message="${rmicclasspath}"/>
+<echo message="${rmicclassesdir}"/>
+<echo message="${rmicsrcclassfile}"/>
+
+<available file="${rmicsrcclassfile}" type="file"
+           property="src_file_present"/>
+
+<if>
+<isset property="src_file_present"/>
+<then>
+	<rmic classname="${rmicclass}" classpath="${rmicclasspath}" base="${rmicclassesdir}"/>
+</then>
+<else>
+  <echo message="&lt;b&gt; while creating rmictsk task source class (${rmicsrcclassfile}) is not present in that location &lt;/b&gt; ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+     <echo message="while creating rmictsk task source class (${rmicsrcclassfile}) is not present in that location"/>
+</else>
+</if>
+<record name="${basedir}/buildlogs/${rmictsk}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${rmictsk}_${msec}.log" action="stop"/>
+
+</target>
+
+<!-- ======================================================================
+                            CONCAT TARGET
+====================================================================== -->
+
+<target name="concat" depends="init">
+<property name="ctask" value="concat"/>
+<record name="${basedir}/buildlogs/${ctask}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${ctask}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${ctask}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+
+<propertycopy name="destfile" from="${val}_concat_dest_file" silent="false"/>
+<propertycopy name="destdir" from="${val}_concat_fileset_dir" silent="false"/>
+<propertycopy name="srcfile"    from="${val}_concat_src_file" silent="false"/>
+
+  <concat destfile="${destfile}" append="true">
+            <filelist dir="${destdir}" files="${srcfile}"/>
+  </concat>
+
+
+<record name="${basedir}/buildlogs/${ctask}_${msec}_err.log" action="stop"/>
+<record name="${basedir}/buildlogs/${ctask}_${msec}.log" action="stop"/>
+</target>
+
+<!--$Id: library.xml,v 1.11.6.2 2013/02/06 05:35:18 sivakumar Exp $-->
+<!--###############################################################################
+                   FileTransfer Task
+###############################################################################-->
+<target name="ftp" depends="init">
+    <propertycopy name="srcfile_list" from="${val}_scp_srcfile" silent="false"/>
+    <propertycopy name="destdir" from="${val}_scp_destdir" silent="false"/>
+    <propertycopy name="keyname" from="${val}_key" silent="false"/>
+    <propertycopy name="scpdestdir" from="${val}_outputdir" silent="false" />
+    <propertycopy name="argument" from="${val}_args" silent="true"/>
+    <propertycopy name="binargument" from="${val}_binargs" silent="true"/>
+    <propertycopy name="binary_type" from="${val}_binary_type" silent="true"/>
+
+    <property name="srcdir" value="${basedir}"/>
+    <property name="machinename" value="ismp-build"/>
+    <property name="username" value="ismp"/>
+    <property name="password" value="Als@ismp#28"/>
+    <property name="executable_file" value="/advent3/ismp/InstallShield/MP50/Ismp_wrapper.sh"/>
+    <property name="dircreation_file" value="/advent3/ismp/InstallShield/MP50/Ismp_dircreation.sh"/>
+    <property name="port" value="22"/>
+
+    <replaceregexp file="${basedir}/ismp/ismp_setup/Projects/${binargument}/${binargument}.xml" match="Build_Id=([^&lt;]*)" replace="Build_Id=${build_id}" flags="g" />
+
+    <propertyregex property="build_configration" input="${argument}" regexp="([^\s]+)" select="\1" casesensitive="false" />
+    <propertyregex property="custom_bin" input="${argument}" regexp="([^\s]+)[\s]([^\s]+)" select="\2" casesensitive="false" />
+    <propertyregex property="ismpproj_src_zip" input="${srcfile_list}" regexp=",*(([^,]*)hg_ismp_src.zip)" select="\1" casesensitive="false" />
+
+    <antcallback target="ziptask">
+    <param name="${val}_zip_name" value="${ismpproj_src_zip}"/>
+    <param name="${val}_execdir" value="${basedir}/ismp/ismp_setup/Projects/${binargument}"/>
+    <param name="${val}_dir_tozip" value="."/>
+    <param name="${val}_zip_exclude" value=""/>
+    </antcallback>
+
+
+    <property name="todestdir" value="/advent3/ismp/InstallShield/MP50/Projects/${day}/${keyname}_${build_id}_${build_configration}"/>
+
+<if>
+   <isset property="custom_bin"/>
+    <then>
+    <basename property="linuxbinfile" file="${custom_bin}"/>
+    <propertyregex property="outbinname" input="${linuxbinfile}" regexp="zip" replace="bin" global="true" />
+    <propertyregex property="custom_bin_mod" input="${custom_bin}" regexp="zip" replace="bin" global="true" />
+
+    <antcallback target="geturl">
+    <param name="${val}_url" value="${custom_bin_mod}"/>
+    <param name="${val}_dest_zip" value="${build_dir}/${outbinname}"/>
+    </antcallback>
+
+    <replaceregexp file="${basedir}/ismp/ismp_setup/Projects/${binargument}/${binargument}.xml" match="(\$A.*linux-customized.*.bin)" replace="$A(\${keyname}_HOME)/${outbinname}" flags="g"/>
+
+    <antcallback target="ziptask">
+    <param name="${val}_zip_name" value="${ismpproj_src_zip}"/>
+    <param name="${val}_execdir" value="${basedir}/ismp/ismp_setup/Projects/${binargument}"/>
+    <param name="${val}_dir_tozip" value="."/>
+    <param name="${val}_zip_exclude" value=""/>
+    </antcallback>
+
+    <antcallback target="ziptask">
+    <param name="${val}_zip_name" value="${ismpproj_src_zip}"/>
+    <param name="${val}_execdir" value="${build_dir}"/>
+    <param name="${val}_dir_tozip" value="${outbinname}"/>
+    <param name="${val}_zip_exclude" value=""/>
+    </antcallback>
+
+    </then>
+</if>
+
+    <antcall target="transferfile">
+        <param name="srcfilelist" value="${srcfile_list}" />
+        <param name="mcname" value="${machinename}" />
+        <param name="username" value="${username}" />
+        <param name="password" value="${password}" />
+        <param name="port" value="${port}" />
+    </antcall>
+
+    <echo message="THE SCRIPT PATH AND CORRESPONDING ARGUMENT IS ${executable_file} ${todestdir} ${keyname} ${build_configration}" />
+    <sshexec host="${machinename}" username="${username}" password="${password}" port="22" command="sh -x ${executable_file} ${todestdir} ${keyname} ${build_configration} ${binargument}" />
+    <if>
+    <not>
+        <equals arg1="${build_configration}" arg2="64bit" />
+    </not>
+    <then>
+          <if>
+            <and>
+                  <not><equals arg1="${binary_type}" arg2="bin" /></not>
+                  <not><equals arg1="${binary_type}" arg2="exe" /></not>
+            </and>
+          <then>
+                 <scp file="${username}@${machinename}:${todestdir}/default/disk1/${binary_type}" todir="${scpdestdir}" port="${port}" password="${password}"/>
+        </then>
+        <else>
+                 <scp file="${username}@${machinename}:${todestdir}/default/disk1/**.${binary_type}" todir="${scpdestdir}" port="${port}" password="${password}"/>
+        </else>                  
+        </if>
+    </then>
+    <else>
+          <if>
+            <and>
+                  <not><equals arg1="${binary_type}" arg2="bin" /></not>
+                  <not><equals arg1="${binary_type}" arg2="exe" /></not>
+            </and>
+          <then>
+                 <scp file="${username}@${machinename}:${todestdir}/64bit/disk1/${binary_type}" todir="${scpdestdir}" port="${port}" password="${password}"/>
+          </then>
+          <else>
+                 <scp file="${username}@${machinename}:${todestdir}/64bit/disk1/**.${binary_type}" todir="${scpdestdir}" port="${port}" password="${password}"/>
+          </else>
+          </if>
+    </else>
+    </if>
+</target>
+
+<target name="transferfile" depends="init">
+
+    <echo message="The Project dir creation Starts..." />
+    <sshexec host="${machinename}" username="${username}" password="${password}" port="22" command="sh -x ${dircreation_file} ${todestdir}" />
+    <echo message="The Project dir creation ends..." />
+
+    <echo message="THE source file list is ${srcfilelist}" />
+    <for list="${srcfilelist}" param="srcfile">
+        <sequential>
+            <propertyregex property="zipname" input="@{srcfile}" regexp="(.*)/(.*.zip)" select ="\2" casesensitive="true" override ="true" />
+            <echo message="THE ZIP NAME IS :::   ${zipname}" />
+            <scp file="@{srcfile}" todir="${username}@${mcname}:${todestdir}/${zipname}" port="${port}" password="${password}"/>
+        </sequential>
+        </for>
+</target>
+
+<target name="multiple_replace" depends="init">
+<property name="multiple_rep" value="multiple_replace"/>
+<propertycopy name="src_file" from="${val}_file" silent="false"/>
+<propertycopy name="getTokenVal" from="${val}_tokenVal" silent="false"/>
+<for param="customtokval" list="${getTokenVal}" delimiter="`">
+<sequential>
+<propertyregex property="get_custom_token" input="@{customtokval}" regexp="([^~]*)~(.*)"  select="\1" casesensitive="true" override="true"/>
+<propertyregex property="get_custom_val" input="@{customtokval}" regexp="([^~]*)~(.*)" select="\2" casesensitive="true" override="true"/>
+<echo message="ReplaceToken:${get_custom_token}" />
+<echo message="ReplaceVal:${get_custom_val} " />
+<replace file="${src_file}" token="${get_custom_token}" value="${get_custom_val}" />
+
+</sequential>
+</for>
+
+</target>
+
+<!-- ======================================================================
+                            EXETASK TARGET               
+====================================================================== -->
+
+<target name="exetask" depends="init">
+<property name="etask" value="exetask"/>
+<record name="${basedir}/buildlogs/${etask}_${val}_${msec}.log" action="start" loglevel="info"/>
+<record name="${basedir}/buildlogs/${etask}_${val}_${msec}_err.log" action="start" loglevel="error"/>
+<record name="${basedir}/buildlogs/${etask}_${val}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+<propertycopy name="exeargs"    from="${val}_exe_args" silent="false"/>
+<propertycopy name="winhome"    from="${val}_prod_home" silent="true"/>
+<propertycopy name="zipexclude"    from="${val}_zip_exclude" silent="true"/>
+<propertycopy name="javaclp" from="${val}_java_classpath" silent="true"/>
+<propertycopy name="javacls" from="${val}_java_class" silent="true"/>
+<propertycopy name="exeunzip_include" from="${val}_unzip_include" silent="true"/>
+<propertycopy name="exeunzip_exclude" from="${val}_files_exclude" silent="true"/>
+<propertycopy name="exedel_exclude" from="${val}_del_exclude" silent="true"/>
+<propertycopy name="commonfiles" from="${val}_commonfiles" silent="true"/>
+<propertycopy name="isdir_alternative" from="${val}_isdir_name" silent="true"/>
+
+<if>
+        <not><isset property="build_id" /></not>
+        <then>
+                <fail message="Build id is not passed" />
+        </then>
+</if>
+
+<if>
+        <not><isset property="branch_name" /></not>
+        <then>
+                <fail message="Branch name is not passed" />
+        </then>
+</if>
+
+<condition property="isdir" value="${isdir_alternative}">
+<isset property="isdir_alternative"/>
+</condition>
+
+<condition property="isdir" value="is_18">
+<and>
+<available file="${basedir}/is_12" type="dir"/>
+<available file="${basedir}/is_16" type="dir"/>
+<available file="${basedir}/is_18" type="dir"/>
+</and>
+</condition>
+
+<condition property="isdir" value="is_16">
+<and>
+<available file="${basedir}/is_12" type="dir"/>
+<available file="${basedir}/is_16" type="dir"/>
+</and>
+</condition>
+
+<condition property="isdir" value="is_18">
+<and>
+<available file="${basedir}/is_12" type="dir"/>
+<available file="${basedir}/is_18" type="dir"/>
+</and>
+</condition>
+
+<condition property="isdir" value="is_18">
+<and>
+<available file="${basedir}/is_16" type="dir"/>
+<available file="${basedir}/is_18" type="dir"/>
+</and>
+</condition>
+
+<condition property="isdir" value="is_12">
+<available file="${basedir}/is_12" type="dir"/>
+</condition>
+
+<condition property="isdir" value="is_16">
+<available file="${basedir}/is_16" type="dir"/>
+</condition>
+
+<condition property="isdir" value="is_18">
+<available file="${basedir}/is_18" type="dir"/>
+</condition>
+
+<if>
+        <not><isset property="exeargs" /></not>
+        <then>
+                <property name="exeargs_mod" value="integ-exe2,integ-exe3"/>
+        </then>
+<else>
+        <propertyregex property="exe_argument" input="${exeargs}" regexp="(.*)\s[0-9].*" select="\1" casesensitive="true" override="true"/>
+        <if>
+                <equals arg1="${exe_argument}" arg2="integ-exe4" />
+                <then>
+                        <propertyregex property="exeargs_mod" input="${exeargs}" regexp="${exe_argument}" replace="integ-exe4,integ-exe5" casesensitive="true"/>
+                </then>
+        </if>
+        <if>
+                <equals arg1="${exe_argument}" arg2="integ-exe5" />
+                <then>
+                        <propertyregex property="exeargs_mod" input="${exeargs}" regexp="${exe_argument}" replace="integ-exe5,integ-exe4" casesensitive="true"/>
+                </then>
+        </if>
+        <if>
+                <equals arg1="${exe_argument}" arg2="integ-exe6" />
+                <then>
+                        <propertyregex property="exeargs_mod" input="${exeargs}" regexp="${exe_argument}" replace="integ-exe6" casesensitive="true"/>
+                </then>
+        </if>
+        <if>
+                <equals arg1="${exe_argument}" arg2="integ-exe2" />
+                <then>
+                        <propertyregex property="exeargs_mod" input="${exeargs}" regexp="${exe_argument}" replace="integ-exe2,integ-exe3" casesensitive="true"/>
+                </then>
+        </if>
+        <if>
+                <equals arg1="${exe_argument}" arg2="integ-exe3" />
+                <then>
+                        <propertyregex property="exeargs_mod" input="${exeargs}" regexp="${exe_argument}" replace="integ-exe3,integ-exe2" casesensitive="true"/>
+                </then>
+        </if>
+</else>
+</if>
+
+<propertyregex property="product_zip"
+input="${exeargs_mod}"
+regexp="([^\s]+)([\s]+)([^\s]+)([^\s]+)([\s]+)([^\s]+)"
+select="\6"
+casesensitive="false" />
+
+<propertyregex property="project_dir"
+input="${exeargs_mod}"
+regexp="([^\s]+)[\s]([^\s]+)[\s]([^\s]+)[\s]([^\s]+)[\s]([^\s]+)[\s]([^\s]+)"
+select="\6"
+casesensitive="false" />
+<echo message="Projdir ${project_dir}"/>
+
+<property name="did_dir" value="${build_dir}/dependencies/did_injection_utils"/>
+<if>
+        <not>
+        <available file="${did_dir}" type="dir"/>
+        </not>
+        <then>
+                <antcall target="geturl">
+                        <param name="${val}_url" value="http://build/me/did_injection_utils/milestones/stable/DIDInjectionUtils.zip"/>
+                        <param name="${val}_dest_zip" value="${build_dir}/zips/did_injection_utils/DIDInjectionUtils.zip"/>
+                </antcall>
+                <antcall target="unzip">
+                        <param name="${val}_unzip_srcdir" value="${build_dir}/zips/did_injection_utils"/>
+                        <param name="${val}_unzip_todir" value="${build_dir}/dependencies/did_injection_utils"/>
+                        <param name="${val}_files_include" value="DIDInjectionUtils.zip"/>
+                </antcall>
+                <antcall target="replacefile">
+                         <param name="${val}_file" value="${build_dir}/dependencies/did_injection_utils/DIDInjectionUtils/Script_Files/ReadDID.rul"/>
+                         <param name="${val}_tok" value="build_id=&quot;NA&quot;"/>
+                         <param name="${val}_value" value="build_id=&quot;${build_id}&quot;"/>
+                </antcall>
+        </then>
+</if>
+
+<antcallback target="copy">
+        <param name="${val}_copy_todir" value="${basedir}/${isdir}/projects/${project_dir}"/>
+        <param name="${val}_fileset_dir" value="${build_dir}/dependencies/did_injection_utils/DIDInjectionUtils"/>
+        <param name="${val}_copy_includes" value="Script_Files/** Setup_Files/**"/>
+        <param name="${val}_copy_excludes" value=""/>
+</antcallback>
+
+        <if>
+                <isset property="winhome"/>
+                <then>
+                                <antcallback target="copy">
+                                <param name="${val}_copy_todir" value="${winhome}"/>
+                                <param name="${val}_fileset_dir" value="${basedir}"/>
+                                <param name="${val}_copy_includes" value="${isdir}/**"/>
+                                <param name="${val}_copy_excludes" value="${zipexclude}"/>
+                                </antcallback>
+                              <antcallback target="ziptask">
+                                <param name="${val}_execdir" value="${winhome}"/>
+                                <param name="${val}_zip_name" value="${product_zip}"/>
+                                <param name="${val}_dir_tozip" value="."/>
+                                <param name="${val}_zip_exclude" value="${zipexclude}"/>
+                                </antcallback>
+
+                </then>
+        <elseif>
+               <and>
+               <isset property="commonfiles"/>
+               <equals arg1="${commonfiles}" arg2="true"/>
+               </and>
+        <then>
+                                <antcallback target="copy">
+                                        <param name="${val}_copy_todir" value="${build_dir}/is_projects/${isdir}/projects/${project_dir}"/>
+                                        <param name="${val}_fileset_dir" value="${basedir}/${isdir}/projects/common"/>
+                                <param name="${val}_copy_includes" value="**"/>
+                                <param name="${val}_copy_excludes" value="${zipexclude}"/>
+                                </antcallback>
+                                <antcallback target="copy">
+                                        <param name="${val}_copy_todir" value="${build_dir}/is_projects/${isdir}/projects/${project_dir}"/>
+                                        <param name="${val}_fileset_dir" value="${basedir}/${isdir}/projects/${project_dir}"/>
+                                <param name="${val}_copy_includes" value="**"/>
+                                <param name="${val}_copy_excludes" value="${zipexclude}"/>
+                                </antcallback>
+                                <antcallback target="ziptask">
+                                <param name="${val}_execdir" value="${build_dir}/is_projects"/>
+                                <param name="${val}_zip_name" value="${product_zip}"/>
+                                <param name="${val}_dir_tozip" value="${isdir}"/>
+                                <param name="${val}_zip_exclude" value="${zipexclude}"/>
+                                </antcallback>
+        </then>
+        </elseif>
+        <else>
+
+                                <antcallback target="ziptask">
+                                <param name="${val}_execdir" value="${basedir}"/>
+                                <param name="${val}_zip_name" value="${product_zip}"/>
+                                <param name="${val}_dir_tozip" value="${isdir}/projects/${project_dir}"/>
+                                <param name="${val}_zip_exclude" value="${zipexclude}"/>
+                                </antcallback>
+        </else>
+        </if>
+
+<antcallback target="javatask">
+            <param name="val" value="duplicate"/>
+            <param name="${val}_java_classpath" value="${build_dir}/utility_packages/exe/Regression.jar"/>
+            <param name="${val}_java_class" value="com.adventnet.testtools.regression.DuplicateFileFinder"/>
+            <param name="${val}_java_args" value="${product_zip}"/>
+        </antcallback>
+
+        <if>
+             <not>
+                   <isset property="javaclp"/>
+             </not>
+             <then>
+
+                <property name="javaclp" value="${build_dir}/utility_packages/exe/Regression.jar"/>
+
+             </then>
+       </if>
+
+        <if>
+                <not>
+                        <isset property="javacls"/>
+                </not>
+                <then>
+                <property name="javacls" value="com.adventnet.testtools.regression.ExeCreationClient"/>
+                </then>
+       </if>
+
+<propertyregex property="output_zip"
+               input="${exeargs_mod}"
+                     regexp="([^\s]+)([\s]+)([^\s]+)([^\s]+)([\s]+)([^\s]+)([\s]+)([^\s]+)"
+                                                         select="\8"
+                                       casesensitive="false" />
+
+<dirname property="unzip_todir" file="${output_zip}"/>
+<basename property="unzip_include" file="${output_zip}"/>
+<property name="unzip_srcdir" value="${basedir}/localworkdir"/>
+<basename property="unzip_exclude" file="${exeunzip_exclude}"/>
+
+<propertyregex property="arguments"
+               input="${exeargs_mod}"
+               regexp="${output_zip}"
+               replace="${unzip_include}"
+               global="true" />
+
+<propertyregex property="exe_file"
+           input="${unzip_include}"
+           regexp="(.*)\.(.*)"
+           select="\1"/>
+
+        <antcallback target="javatask">
+                                <param name="${val}_java_classpath" value="${javaclp}"/>
+                                <param name="${val}_java_class" value="${javacls}"/>
+                                <param name="${val}_java_args" value="${arguments} exetask ${product_id} ${product_name} ${branch_name} ${build_id} cm-notify@zohocorp.com 20 10500,10600,10700"/>
+        </antcallback>
+
+
+
+<echo message="${output_dir}"/>
+<echo message="${output_zip}"/>
+<echo message="${unzip_todir}"/>
+<echo message="${unzip_include}"/>
+
+ <antcallback target="unzip">
+                                <param name="${val}_unzip_srcdir" value="${unzip_srcdir}"/>
+                                <param name="${val}_unzip_todir" value="${unzip_todir}"/>
+                                <param name="${val}_files_include" value="${unzip_include}"/>
+                                <param name="${val}_files_exclude" value="${unzip_exclude}"/>
+       </antcallback>
+
+       <property name="output_exe" value="${unzip_todir}/${exe_file}.exe"/>
+       <property name="exe_log" value="${unzip_todir}/exe_logs/${exe_file}/buildout.txt"/>
+
+        <exec dir="${basedir}" executable="md5sum" failonerror="true" append="true" output="${unzip_todir}/exe_logs/${exe_file}/mdsum_inputzip.txt">
+                     <arg line="${product_zip}"/>
+        </exec>
+
+            <echo message="MD5SUM check started..."/>
+                <antcall target="md5sum">
+                        <param name="${val}_md5sum_windowsfile" value="${unzip_todir}/exe_logs/${exe_file}/md5sumcheck.txt"/>
+                        <param name="${val}_md5sum_linuxfile" value="${unzip_todir}/${exe_file}.exe"/>
+                </antcall>
+        <echo message= "MD5SUM check completed..."/>
+        
+        <echo message="Signing check started.."/>
+                <loadfile property="signing_file" srcFile="${unzip_todir}/exe_logs/${exe_file}/signing_out.txt">
+                </loadfile>
+                <!--propertyregex property="signing_status" input="${signing_file}" regexp="(Successfully signed and timestamped:*)(.*)" select="\1" casesensitive="true" override="true"/-->
+                <propertyregex property="signing_status" input="${signing_file}" regexp="(Successfully signed:*)(.*)" select="\1" casesensitive="true" override="true"/>
+                <propertyregex property="signing_not_required" input="${signing_file}" regexp="(Signing is not required)(.*)" select="\1" casesensitive="true" override="true"/>
+                        <if>
+                                <isset property="signing_status"/>
+                                <then>
+                                        <echo message="Exe successfully signed and Not timestamped."/>
+                                </then>
+                        <elseif>
+                                <isset property="signing_not_required"/>
+                                <then>
+                                        <echo message="Signing is not required in exetask."/>
+                                </then>
+                        </elseif>
+                        <else>
+                                <fail message="${signing_file}"/>
+                        </else>
+                        </if>
+        <echo message="Signing check completed..."/>
+
+       <if>
+               <not>
+                       <available file="${output_exe}" property="exe.present"/>
+               </not>
+               <then>
+
+                       <echo message="Some problem in ${exe_file}.exe creation. So retrying the same task" />
+                       <antcallback target="javatask">
+                               <param name="${val}_java_classpath" value="${javaclp}"/>
+                               <param name="${val}_java_class" value="${javacls}"/>
+                               <param name="${val}_java_args" value="${arguments} exetask ${product_name} ${branch_name} ${build_id} cm-notify@zohocorp.com 20 10600,10700,10500"/>
+                       </antcallback>
+
+                       <echo message="${output_dir}"/>
+                       <echo message="${output_zip}"/>
+                       <echo message="${unzip_todir}"/>
+                       <echo message="${unzip_include}"/>
+
+                       <antcallback target="unzip">
+                               <param name="${val}_unzip_srcdir" value="${unzip_srcdir}"/>
+                               <param name="${val}_unzip_todir" value="${unzip_todir}"/>
+                               <param name="${val}_files_include" value="${unzip_include}"/>
+                               <param name="${val}_files_exclude" value="${unzip_exclude}"/>
+                       </antcallback>
+               </then>
+       </if>
+        <fail message="Error occurred in ${exe_file}.exe creation. Please check the logs : exe_logs/${exe_file}/">
+                <condition>
+                        <not>
+                                <available file="${output_exe}" />
+                        </not>
+                </condition>
+        </fail>
+
+        <antcallback target="del">
+                                <param name="${val}_del_fileset_dir" value="${unzip_srcdir}"/>
+                                <param name="${val}_delete_includes" value="${unzip_include}"/>
+                                <param name="${val}_delete_excludes" value="${exedel_exclude}"/>
+       </antcallback>
+
+</target>
+
+<!-- ======================================================================
+            MD5SUM check
+====================================================================== -->
+<target name="md5sum" depends="init">
+<property name="md5sum" value="mdsum"/>
+<propertycopy name="windowsfile" from="${val}_md5sum_windowsfile" silent="false"/>
+<propertycopy name="linuxfile" from="${val}_md5sum_linuxfile" silent="false"/>
+
+         <fail message="Problem while creating ${linuxfile}. Please check the error logs : ${output_dir}/exe_logs">
+                <condition>
+                <not>
+                        <available file="${linuxfile}" property="exe.present"/>
+                </not>
+                </condition>
+        </fail>
+
+         <exec dir="${basedir}" executable="md5sum" failonerror="true" append="true" output="${basedir}/linuxmd5sumcheck.txt">
+                     <arg line="${linuxfile}"/>
+         </exec>
+
+        <basename property="linuxfilename" file="${linuxfile}"/>
+        <loadfile property="windowsoutputfile" srcfile="${windowsfile}"/>
+        <propertyregex property="windowsfilename" input="${windowsoutputfile}" regexp="(^.*) +(.*)" select ="\2" casesensitive="true"/>
+        <basename property="windowsname" file="${windowsfilename}"/>
+        <if>
+             <equals arg1="${windowsname}" arg2="*${linuxfilename}" />
+             <then>
+                <loadfile property="linuxoutputfile" srcfile="${basedir}/linuxmd5sumcheck.txt"/>
+                        <propertyregex property="linuxmd5sum" input="${linuxoutputfile}" regexp="(^.*)  (.*)" select ="\1" casesensitive="true"/>
+                <loadfile property="windowsoutputfile" srcfile="${windowsfile}"/>
+                        <propertyregex property="windowsmd5sum" input="${windowsoutputfile}" regexp="(^.*) +(.*)" select ="\1" casesensitive="true"/>
+                <fail message="${linuxmd5sum} not = ${windowsmd5sum}">
+                        <condition>
+                                <not>
+                                        <equals arg1="${linuxmd5sum}" arg2="${windowsmd5sum}" />
+                                </not>
+                        </condition>
+                </fail>
+        <echo message= " ${linuxmd5sum} = ${windowsmd5sum} "/>
+        </then>
+        </if>
+</target>
+
+<!-- ======================================================================
+        MAC PKG TASK TARGET
+====================================================================== -->
+
+<target name="macpkgtask" depends="init">
+        <property name="mptask" value="macpkgtask"/>
+        <record name="${basedir}/buildlogs/${mptask}_${val}_${msec}.log" action="start" loglevel="info"/>
+        <record name="${basedir}/buildlogs/${mptask}_${val}_${msec}_err.log" action="start" loglevel="error"/>
+        <record name="${basedir}/buildlogs/${mptask}_${val}_${msec}_err.log" action="start" loglevel="warn" append="yes"/>
+
+        <propertycopy name="macpkglocalsrc" from="${val}_macpkg_localsrc" silent="false"/>
+        <propertycopy name="macpkglocaldest" from="${val}_macpkg_localdest" silent="false"/>
+        <propertycopy name="macpkgremotesrc" from="${val}_macpkg_remotesrc" silent="false"/>
+        <propertycopy name="macpkgremotedest" from="${val}_macpkg_remotedest" silent="false"/>
+        <propertycopy name="macpkghost" from="${val}_macpkg_host" silent="false"/>
+        <propertycopy name="macpkguser" from="${val}_macpkg_user" silent="false"/>
+        <propertycopy name="macpkgpasswd" from="${val}_macpkg_passwd" silent="false"/>
+        <propertycopy name="macpkgcmd" from="${val}_macpkg_cmd" silent="false"/>
+
+        <propertyregex property="macpkg_dir" input="${macpkgremotesrc}" regexp="(.*)/(.*)" select ="\1" casesensitive="true" override ="true"/>
+        <sshexec host="${macpkghost}" username="${macpkguser}" password="${macpkgpasswd}" command="mkdir -p ${macpkg_dir}" trust="true"/>
+        <scp file="${macpkglocalsrc}" todir="${macpkguser}@${macpkghost}:${macpkgremotesrc}" password="${macpkgpasswd}" trust="true"/>
+        <sshexec host="${macpkghost}" username="${macpkguser}" password="${macpkgpasswd}" command="${macpkgcmd}" trust="true"/>
+        <scp file="${macpkguser}@${macpkghost}:${macpkgremotedest}" todir="${macpkglocaldest}" password="${macpkgpasswd}" trust="true"/>
+</target>
+
+<!-- ====================================================================== -->
+<target name="parallelexecution" depends="init">
+    <propertycopy name="callorder" from="${ordername}_order" />
+    <propertycopy name="order_ondemand" from="${ordername}_needed" silent="true"/>
+    <if>
+        <equals arg1="${order_ondemand}" arg2="no"/>
+        <then>
+                <echo message="Quitting ${ordername}_order as it is not needed"/>
+        </then>
+        <else>
+    <foreach list="${callorder}"
+                   target="calltask"
+                   inheritall="false"
+                   param="prop">
+    </foreach>
+    </else>
+    </if>
+    </target>
+
+<!-- ======================================================================
+       CONTEXT PACKAGER PARALLEL ORDER
+====================================================================== -->
+
+<target name="contextpkgpara" depends="init">
+<propertycopy name="context" from="${val}_contextpkg_context" silent="false"/>
+<propertycopy name="contexthome" from="${val}_contextpkg_home" silent="true"/>
+<propertycopy name="excludefiles" from="${val}_contextpkg_excludes" silent="true"/>
+<echo message="context : ${context}"/>
+<propertyregex property="contextval"
+               input="${context}"
+                     regexp="(.*),"
+                                                         select="\1"
+                                       casesensitive="false" />
+<echo message="cntxtval:${contextval}"/>
+<parallel failonany="true">
+<for list="${context}" parallel="true" param="ordername">
+<sequential>
+               <antcall target="parallelexecution" inheritall="true">
+               <param name="ordername" value="@{ordername}"/>
+               </antcall>
+</sequential>
+</for>
+</parallel>
+</target>
+
+
+

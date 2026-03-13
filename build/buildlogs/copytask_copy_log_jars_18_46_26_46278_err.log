@@ -1,0 +1,12 @@
+     [echo] ./lib_logs/logsclient/logclient/lib,./NoteBook_build_stage/war_dir/WEB-INF/lib,**/*.jar
+     [echo] Local build mickey lite pre check not needed.
+     [echo] ----------- NoteBook 1.0 2026 ------------
+     [echo] -----------total time 0.002 sec ------------
+     [echo] copy task param:-copy_log_jars
+     [echo] todir:-./NoteBook_build_stage/war_dir/WEB-INF/lib
+     [echo] srcdir:-./lib_logs/logsclient/logclient/lib
+     [echo] includes:-**/*.jar
+     [echo] excludes:-${copy_excludes_match} build/checks.xml
+     [echo] mapper type:-identity
+     [echo] mapper from:-${mapperfrom}
+     [echo] mapper to:-${mapperto}

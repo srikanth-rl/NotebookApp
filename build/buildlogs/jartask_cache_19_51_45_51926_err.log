@@ -1,0 +1,8 @@
+     [echo] ./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-cache.jar,./NoteBook_build_stage/classes,com/zoho/notebook/cache/**,
+     [echo] Local build mickey lite pre check not needed.
+     [echo] ----------- NoteBook 1.0 2026 ------------
+     [echo] -----------total time 0.001 sec ------------
+     [echo] cache:jarcreation
+     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-cache.jar
+     [echo] fileincludes:-com/zoho/notebook/cache/**
+     [echo] fileexcludes:-

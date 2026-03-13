@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="/home/sri-24601/Downloads/appserver_container/AdventNet/Sas/tomcat/lib/servlet-api.jar" sourcepath="/home/sri-24601/Downloads/apache-tomcat-9.0.115-src"/>
+	<classpathentry exported="true" kind="lib" path="/home/sri-24601/eclipse-workspace/NoteBookApp/src/main/webapp/WEB-INF/lib/snakeyaml-2.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/sri-24601/eclipse-workspace/NoteBookApp/src/main/webapp/WEB-INF/lib/HikariCP-5.1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/sri-24601/eclipse-workspace/NoteBookApp/src/main/webapp/WEB-INF/lib/jackson-databind-2.15.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/sri-24601/eclipse-workspace/NoteBookApp/src/main/webapp/WEB-INF/lib/slf4j-api-1.7.36.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/sri-24601/eclipse-workspace/NoteBookApp/src/main/webapp/WEB-INF/lib/jackson-annotations-2.15.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/sri-24601/eclipse-workspace/NoteBookApp/src/main/webapp/WEB-INF/lib/slf4j-simple-1.7.36.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/sri-24601/eclipse-workspace/NoteBookApp/src/main/webapp/WEB-INF/lib/protobuf-java-3.21.9.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/sri-24601/eclipse-workspace/NoteBookApp/src/main/webapp/WEB-INF/lib/jackson-core-2.15.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/sri-24601/eclipse-workspace/NoteBookApp/src/main/webapp/WEB-INF/lib/mysql-connector-j-8.2.0.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v9.0"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

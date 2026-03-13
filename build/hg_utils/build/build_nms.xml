@@ -1,0 +1,143 @@
+<!DOCTYPE project [
+<!ENTITY library SYSTEM "./library.xml">
+]>
+
+
+<project name="build" default="all" basedir=".">
+<taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+<property environment="env"/>
+<!--property file="build.properties"/-->
+<property file="ant.properties"/>
+&library;
+
+<!-- ============================================================================
+       CALLING ALL TARGETS IN ORDER 
+     =========================================================================-->
+
+<target name="all">
+<mkdir dir="${basedir}/buildlogs"/>
+<echo message="&lt;html&gt;" file="${basedir}/buildtime.html"/>
+<echo message="&lt;br&gt;" file="${basedir}/buildtime.html" append="yes"/>
+<echo message="&lt;br&gt;" file="${basedir}/buildtime.html" append="yes"/>
+<stopwatch name="total_time" action="start"/>
+<if>
+     <isset property="target"/>
+     <then>
+        <propertycopy name="build_order" from="${target}_order" silent="true"/>
+     </then>
+     <else>
+        <propertycopy name="build_order" from="local_order" silent="true"/>
+     </else>
+</if>
+<echo message="calltarget :${target}"/>
+<echo message="target order:${build_order}"/>
+<foreach list="${build_order}"
+		target="calltarget"
+		inheritall="true"
+		param="prop">
+</foreach>
+<stopwatch name="total_time" action="total"/>
+<echo message="&lt;br&gt;" file="${basedir}/buildtime.html" append="yes"/>
+<echo message="Total build time is &lt;b&gt;${total_time}&lt;/b&gt;" file="buildtime.html" append="yes"/>
+<echo message="&lt;/html&gt;" file="${basedir}/buildtime.html" append="yes"/>
+</target>
+
+<!-- ======================================================================
+						CALLTARGET  TARGET 
+====================================================================== -->
+
+<target name="calltarget">
+
+<stopwatch name="${prop}_time" action="start"/>
+<propertycopy name="call" from="${prop}_order" silent="true"/>
+<propertycopy name="callneeded" from="${prop}_needed" silent="true"/>
+
+<if>
+        <equals arg1="${callneeded}" arg2="no"/>
+        <then>
+                <echo message="Quitting ${call} as it is not needed"/>
+        </then>
+        <else>
+                <foreach list="${call}"
+                        target="calltask"
+                        inheritall="true"
+                        param="prop">
+                </foreach>
+        </else>
+</if>
+
+<stopwatch name="${prop}_time" action="total"/>
+
+<propertycopy name="timer" from="${prop}_time" silent="true"/>
+<echo message="Total time taken by ${prop} is ${timer} ------------"/>
+
+<echo message="Total time taken by &lt;b&gt;${prop} &lt;/b&gt;target is &lt;b&gt; ${timer} &lt;/b&gt;" file="buildtime.html" append="yes"/>
+
+<echo message="&lt;br&gt;" file="${basedir}/buildtime.html" append="yes"/>
+</target>
+
+<!-- ======================================================================
+						CALLTASK  TARGET 
+====================================================================== -->
+
+<target name="calltask">
+
+<propertyregex property="task"
+               input="${prop}"
+	             regexp="(.*):"
+							 select="\1"
+				       casesensitive="false" />
+
+<propertyregex property="param"
+               input="${prop}"
+	             regexp=":(.*)"
+							 select="\1"
+				       casesensitive="false" />
+
+
+<echo message="${prop}"/>
+<echo message="task:${task}"/>
+<echo message="param:${param}"/>
+
+<!-- operation targets called here with parameter -->
+<property name="calltask" value="${param}_${task}" />
+<propertycopy name="description" from="${param}_${task}_description" silent="true"/>
+<propertycopy name="calltaskneeded" from="${calltask}_needed" silent="true"/>
+<if>
+        <equals arg1="${calltaskneeded}" arg2="no"/>
+        <then>
+                <echo message="Quitting ${calltask} as it is not needed"/>
+        </then>
+        <else>
+           <if>
+		<isset property="description"/>
+		<then>
+			<echo message="${description} started ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/> 
+                        <echo message="&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+                </then>
+		<else>
+                         <echo message="${task} task started for &lt;b&gt; ${param}...&lt;/b&gt; &lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+                         <echo message="&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+		</else>
+		</if>
+<antcall target="${task}">
+<param name="val" value="${param}"/>
+</antcall>
+<if>
+                <isset property="description"/>
+                <then>
+                        <echo message="${description} ended ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+                        <echo message="&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+                </then>
+                <else>
+                         <echo message="${task} task ended for &lt;b&gt; ${param} &lt;/b&gt; ...&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+                         <echo message="&lt;br&gt;" file="${basedir}/process.html" append="yes"/>
+                </else>
+		</if>
+          </else>
+</if>
+</target>
+
+</project>
+
+<!--$Id: build.xml,v 1.3.6.1 2012/01/30 10:54:20 sivakumar Exp $-->

@@ -1,0 +1,71 @@
+package $pkg;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+import com.zoho.security.eventfw.EventDataProcessor;
+import com.zoho.security.eventfw.EventCallerInferrer;
+import com.zoho.security.eventfw.ExecutionTimer;
+import com.zoho.security.eventfw.config.EventFWConstants;
+import com.zoho.security.eventfw.type.EventProcessor;
+
+public final class ZSEC_$name
+{
+  private static final EventFWConstants.TYPE TYPE = EventFWConstants.TYPE.valueOf("$type.toUpperCase()");
+  private static final String NAME = "$name";
+#if($type == "log" && $params.getSubLogs())
+#foreach($subLog in $params.getSubLogs().keySet())
+  private static final EventProcessor ${subLog}_EVENT = EventDataProcessor.getEventProcessor(TYPE, NAME, "$subLog");
+#end
+#else
+  private static final EventProcessor EVENT = EventDataProcessor.getEventProcessor(TYPE, NAME);
+
+#macro (pushDataMethodGeneration $params $builtinparams $methodName $description)
+/*
+ *  $description  "$name"
+ * 
+ #foreach( $p in $params)
+ * @param $p.getName()
+ #end
+*/
+  public static void pushInfo(#set( $count = 1)#foreach($p in $params)$p.getType() $p.getName()#if( $count < $params.size() ), #set( $count = $count + 1)#end#end#if( $params.size()>0), #end ExecutionTimer timer) {
+  EventDataProcessor.stopRunningTimer(timer);
+#set($dataFieldsSize = 0)
+#if($params)#set($dataFieldsSize = $params.size())#end
+#if($builtinparams)#set($dataFieldsSize = $dataFieldsSize + $builtinparams.size())#end
+  Map<String,Object> dataMap = new HashMap<String, Object>($dataFieldsSize);
+  #foreach( $p in $params)
+  dataMap.put("$p.getName()",$p.getName());
+  #end
+  EventDataProcessor.pushData(EVENT, dataMap, EventCallerInferrer.inferClass(EVENT, NAME, "$methodName"), timer);
+   }
+
+#end
+#pushDataMethodGeneration($params.getDataFields() $params.getBuiltInFields() "pushInfo" "pushes the $type")
+#end
+#if($type=="log")
+#macro (methodGeneration $map)
+#foreach ($mapEntry in $map.entrySet())
+#set($methodName = $mapEntry.value.getCapitalizedName())
+/*
+ * push$methodName of the event "$name"
+ #foreach( $p in $mapEntry.value.getDataFields())
+ * @param $p.getName()
+ #end
+*/
+  public static void push$methodName(#set( $count = 1)#foreach($p in $mapEntry.value.getDataFields())$p.getType() $p.getName()#if( $count < $mapEntry.value.getDataFields().size() ), #set( $count = $count + 1)#end#end#if($mapEntry.value.getDataFields().size()>0), #end ExecutionTimer timer) {
+  EventDataProcessor.stopRunningTimer(timer);
+#set($dataFieldsSize = 0)
+#if($mapEntry.value.getDataFields())#set($dataFieldsSize = $mapEntry.value.getDataFields().size())#end
+#if($mapEntry.value.getBuiltInFields())#set($dataFieldsSize = $dataFieldsSize + $mapEntry.value.getBuiltInFields().size())#end
+  Map<String,Object> dataMap =new HashMap<String, Object>($dataFieldsSize);
+  #foreach( $p in $mapEntry.value.getDataFields())
+  dataMap.put("$p.getName()",$p.getName());
+  #end
+EventDataProcessor.pushData($mapEntry.value.getName()_EVENT, dataMap, EventCallerInferrer.inferClass($mapEntry.value.getName()_EVENT, NAME, "push$methodName"), timer);
+  }
+#end
+#end
+#methodGeneration($params.getSubLogs())
+#end
+}

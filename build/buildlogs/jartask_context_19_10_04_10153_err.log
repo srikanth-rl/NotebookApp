@@ -1,0 +1,8 @@
+     [echo] ./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-context.jar,./NoteBook_build_stage/classes,com/zoho/notebook/context/**,
+     [echo] Local build mickey lite pre check not needed.
+     [echo] ----------- NoteBook 1.0 2026 ------------
+     [echo] -----------total time 0.002 sec ------------
+     [echo] context:jarcreation
+     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-context.jar
+     [echo] fileincludes:-com/zoho/notebook/context/**
+     [echo] fileexcludes:-

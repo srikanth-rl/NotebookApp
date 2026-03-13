@@ -1,0 +1,4 @@
+     [echo] dto:jarcreation
+     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-dto.jar
+     [echo] fileincludes:-com/zoho/notebook/dto/**
+     [echo] fileexcludes:-

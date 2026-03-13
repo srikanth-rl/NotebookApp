@@ -1,0 +1,6 @@
+     [echo] ./NoteBook_build_stage,**,
+     [echo] Local build mickey lite pre check not needed.
+     [echo] ----------- NoteBook 1.0 2026 ------------
+     [echo] -----------total time 0.002 sec ------------
+     [echo] ./NoteBook_build_stage
+     [echo] Apache Ant(TM) version 1.9.6 compiled on June 29 2015

@@ -1,0 +1,45 @@
+package com.zoho.notebook.util;
+
+import com.zoho.notebook.dto.request.NotebookDtoRequest;
+import com.zoho.notebook.dto.request.UserDtoRequest;
+
+public class RequestValidator {
+
+    private RequestValidator() {}
+
+    public static boolean validateSignup(UserDtoRequest req) {
+        if (req == null) 
+        	return false;
+        return FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getDisplayName())
+            && FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getEmail())
+            && FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getPassword())
+            && FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getTimeZone());
+    }
+
+    public static boolean validateLogin(UserDtoRequest req) {
+        if (req == null) 
+        	return false;
+        return FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getValue()) 
+            && FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getPassword());
+    }
+
+    public static boolean validateContact(UserDtoRequest req) {
+        if (req == null) 
+        	return false;
+        return FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getValue());
+    }
+
+    public static boolean validateUpdateProfile(UserDtoRequest req) {
+        if (req == null)
+        	return false;
+        return FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getDisplayName())
+            || FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getTimeZone());
+    }
+    
+        
+    public static boolean validateNotebook(NotebookDtoRequest req) {
+        if (req == null) 
+        	return false;
+        return FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getTitle());
+    }
+}

@@ -1,0 +1,4 @@
+     [echo] enums:jarcreation
+     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-enums.jar
+     [echo] fileincludes:-com/zoho/notebook/enums/**
+     [echo] fileexcludes:-

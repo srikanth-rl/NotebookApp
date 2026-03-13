@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notebook App</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div id="app-loader" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; align-items:center; justify-content:center;">
+        <h3>Loading...</h3>
+    </div>
+
+    <div id="login-view" class="view">
+        <h2>Login</h2>
+        <div class="phone-input-group">
+            <select id="l_country_code"></select>
+            <input id="l_email" type="text" placeholder="Email or Phone">
+        </div>
+        <input id="l_pass" type="password" placeholder="Password">
+        <button onclick="doLogin()">Login</button>
+        <p>Don't have an account? <a href="#signup">Sign Up</a></p>
+    </div>
+
+    <div id="signup-view" class="view hide">
+        <h2>Sign Up</h2>
+        <input id="s_name" placeholder="Display Name">
+        <input id="s_email" type="email" placeholder="Email" required>
+        <input id="s_pass" type="password" placeholder="Password">
+        
+        <div class="phone-input-group">
+            <select id="s_country_code"></select>
+            <input id="s_phone" placeholder="Phone (Optional)">
+        </div>
+        
+        <label for="s_timezone" style="display:block; text-align:center; margin-top:10px; color:#555; font-size:14px;">
+            Time Zone
+        </label>
+        <select id="s_timezone" name="timeZone"></select>  
+        
+        <br><br>
+        <button onclick="doSignup()">Create Account</button>
+        <p>Already have an account? <a href="#login">Login</a></p>
+    </div>
+
+    <div id="home-view" class="view hide">
+        <div id="welcome-section" class="welcome-card">
+            <h1>Welcome, <span id="welcome-name"></span>!</h1>
+            <p>You are successfully logged in.</p>
+            <div class="dashboard-actions">
+                <button onclick="location.hash='profile'" class="btn-primary">Manage Profile</button>
+                <button onclick="location.hash='notebooks'" class="btn-primary" style="margin-top:10px;">Manage Notebooks</button>
+                <button onclick="doLogout()" class="btn-danger">Logout</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notebooks-view" class="view hide" style="max-width: 900px;">
+        <div class="header-row">
+            <h2>My Notebooks</h2>
+            <button onclick="location.hash='home'" class="btn-secondary">Back to Dashboard</button>
+        </div>
+    
+        <div class="section">
+            <div style="text-align: right; margin-bottom: 15px;">
+                <button onclick="createNotebook()" class="add-btn" style="width: auto;">+ Create Notebook</button>
+            </div>
+            
+            <div id="notebook-grid" class="notebook-grid">
+            </div>
+        </div>
+    </div>
+
+    <div id="notes-view" class="view hide" style="max-width: 900px;">
+        <div class="header-row">
+            <h2 id="current-notebook-title">Notebook</h2>
+            <button onclick="location.hash='notebooks'" class="btn-secondary">Back to Notebooks</button>
+        </div>
+
+        <div class="section">
+            <div style="text-align: right; margin-bottom: 15px;">
+                <button onclick="createNote()" class="add-btn" style="width: auto;">+ Create Note</button>
+            </div>
+
+            <div id="notes-list" class="notes-list-container">
+                <p>Loading notes...</p>
+            </div>
+        </div>
+    </div>
+        
+    <div id="profile-view" class="view hide">
+        <div class="header-row">
+            <h2>Manage Profile</h2>
+            <button onclick="location.hash='home'" class="btn-secondary">Back to Dashboard</button>
+        </div>
+
+        <div class="section">
+            <h3>Personal Details <button onclick="saveProfile()" class="save-btn">Save</button></h3>
+            <table class="details-table">
+                <tbody>
+                    <tr>
+                        <th width="150">Name</th>
+                        <td><input id="p_name" placeholder="Display Name"></td>
+                    </tr>
+                    <tr>
+                        <th>Time Zone</th>
+                        <td><select id="p_timezone" style="width: 100%; border: none; background: transparent;"></select></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3>Emails <button onclick="addContact('email')" class="add-btn">+ Add</button></h3>
+            <table>
+                <thead><tr><th>Email Address</th><th width="120">Status</th></tr></thead>
+                <tbody id="email-list"></tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3>Phones <button onclick="addContact('phone')" class="add-btn">+ Add</button></h3>
+            <table>
+                <thead><tr><th>Phone Number</th><th width="120">Status</th></tr></thead>
+                <tbody id="phone-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="phone-modal" class="modal-overlay hide">
+        <div class="modal-content" style="background:white; padding:20px; border-radius:8px; width:300px; margin:auto;">
+            <h3>Add Phone Number</h3>
+            <select id="p_add_country_code" style="width:100%; margin-bottom:10px;"></select>
+            <input id="p_add_phone_val" placeholder="Phone Number" style="width:100%; margin-bottom:10px;">
+            <div style="display:flex; gap:10px;">
+                <button onclick="submitPhoneContact()" class="btn-primary" style="flex:1">Add</button>
+                <button onclick="closePhoneModal()" class="btn-secondary" style="flex:1">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- <div id="note-modal" class="modal hide">
+        <div class="modal-content">
+            <h3>Create New Note</h3>
+            <input id="modal-note-title" type="text" placeholder="Note Title">
+            <textarea id="modal-note-content" placeholder="Write your thoughts here..."></textarea>
+            
+            <div class="modal-actions">
+                <button onclick="saveNoteFromModal()" class="btn-primary">Save Note</button>
+                <button onclick="closeNoteModal()" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+ -->
+    <script src="js/app.js"></script>
+</body>
+</html>

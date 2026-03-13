@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="rules">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="rule" minOccurs="1" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="description" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
+
+							<xs:element name="ip" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="value" type="appFirewallComponent" minOccurs="1" maxOccurs="1"></xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="url" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="path" type="appFirewallComponent" minOccurs="0" maxOccurs="1"></xs:element>
+										<xs:element name="querystring" type="appFirewallComponent" minOccurs="0" maxOccurs="1"></xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="method" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="name" type="appFirewallComponent" minOccurs="1" maxOccurs="1"></xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="headers" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="header" minOccurs="1" maxOccurs="unbounded" type="keyValueModel" ></xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+
+							<xs:element name="params" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="param" minOccurs="1" maxOccurs="unbounded" type="keyValueModel" ></xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+
+							<xs:element name="inputstream" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="content" type="appFirewallComponent" minOccurs="1" maxOccurs="1"></xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							
+                            <xs:element name="files" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="file" minOccurs="1" maxOccurs="unbounded" type="filekeyValueModel" ></xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							
+							<xs:element name="server" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="name" type="appFirewallComponent" minOccurs="1" maxOccurs="1"></xs:element>
+										<xs:element name="port" type="appFirewallComponent" minOccurs="1" maxOccurs="1"></xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							
+							<xs:element name="users" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="user" minOccurs="1" maxOccurs="unbounded" type="userIdModel" ></xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							
+							<xs:element name="actions" minOccurs="0" maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="action" minOccurs="1" maxOccurs="unbounded" type="actionTypeModel" ></xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="userIdModel">
+		<xs:sequence>
+			<xs:element name="zuid" type="appFirewallComponent" minOccurs="0" maxOccurs="1"></xs:element>
+			<xs:element name="zaaid" type="appFirewallComponent" minOccurs="0" maxOccurs="1"></xs:element>
+			<xs:element name="zsoid" type="appFirewallComponent" minOccurs="0" maxOccurs="1"></xs:element>
+			<xs:element name="email" type="appFirewallComponent" minOccurs="0" maxOccurs="1"></xs:element>
+		</xs:sequence>
+	</xs:complexType>
+   	<xs:complexType name="filekeyValueModel">
+		<xs:sequence>
+			<xs:element name="name" type="appFirewallComponent" minOccurs="0" maxOccurs="1"></xs:element>
+			<xs:element name="content" type="appFirewallComponent" minOccurs="0" maxOccurs="1"></xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="keyValueModel">
+		<xs:sequence>
+			<xs:element name="name" type="appFirewallComponent" minOccurs="1" maxOccurs="1"></xs:element>
+			<xs:element name="value" type="appFirewallComponent" minOccurs="0" maxOccurs="1"></xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="actionTypeModel">
+		<xs:simpleContent>
+			<xs:extension base="nonEmptyTextContent">
+				<xs:attribute name="type" type="actionType" default="BLOCK" ></xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="appFirewallComponent">
+		<xs:simpleContent>
+			<xs:extension base="nonEmptyTextContent">
+				<xs:attribute name="operator" type="operatorType" default="stringmatches" ></xs:attribute>
+				<xs:attribute name="length" type="positiveIntegers" default="0" ></xs:attribute>
+			</xs:extension>
+
+		</xs:simpleContent>
+
+
+
+	</xs:complexType>
+
+	<xs:simpleType name="nonEmptyTextContent">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"></xs:minLength>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="positiveIntegers">
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="0"></xs:minInclusive>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="operatorType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="regexmatches" ></xs:enumeration>
+			<xs:enumeration value="regexfind" ></xs:enumeration>
+			<xs:enumeration value="startswithprefix" ></xs:enumeration>
+			<xs:enumeration value="endswithsuffix" ></xs:enumeration>
+			<xs:enumeration value="stringmatches" ></xs:enumeration>
+			<xs:enumeration value="stringcontains" ></xs:enumeration>
+			<xs:enumeration value="rangematches"></xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+   
+    <xs:simpleType name="actionType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="BLOCK"></xs:enumeration>
+			<xs:enumeration value="REDIRECTION"></xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

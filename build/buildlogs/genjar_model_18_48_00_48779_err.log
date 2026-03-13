@@ -1,0 +1,4 @@
+     [echo] model:jarcreation
+     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-model.jar
+     [echo] fileincludes:-com/zoho/notebook/model/**
+     [echo] fileexcludes:-

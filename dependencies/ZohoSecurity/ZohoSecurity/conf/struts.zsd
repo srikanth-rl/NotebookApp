@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema>
+	<elements>
+		<element name="struts">
+			<children>
+				<element ref="constant"/>
+			</children>
+		</element>
+		<element name="constant">
+			<conditions>
+				<condition ref="strutsConditions"/>
+			</conditions>
+		</element>
+	</elements>
+	<conditions name="strutsConditions">
+		<condition name="devModeConfigurationCheck" error_code="ZSDSUE101" rule_name="DEVELOPMENT_MODE_NOT_FALSE_FOR_STRUTS" error_msg="Development mode must be false" error_priority="MEDIUM" violates-if="true" issue-in="attribute" issue-key-name="name,value" checkFor="true"></condition>
+		<condition name="fullNameSpaceConfigurationCheck" error_code="ZSDSUE103" rule_name="STRUTS_MAPPER_ALWAYS_SELECT_FULL_NAMESPACE_NOT_FALSE_FOR_STRUTS" error_msg="struts.mapper.alwaysSelectFullNamespace must be false" error_priority="MEDIUM" violates-if="true" issue-in="attribute" issue-key-name="name,value" checkFor="true"></condition>
+	</conditions>
+	<conditions name="strutsPropertiesConditions">
+		<condition name="devModeCheck" error_code="ZSDSUE201" rule_name="DEVELOPMENT_MODE_NOT_FALSE_FOR_STRUTS_PROPERTIES" error_msg="Development mode must be false" error_priority="MEDIUM" violates-if="true" issue-in="property" issue-key-name="name,value" checkFor="true"></condition>
+		<condition name="fullNameSpaceCheck" error_code="ZSDSUE203" rule_name="STRUTS_MAPPER_ALWAYS_SELECT_FULL_NAMESPACE_NOT_FALSE_FOR_STRUTS_PROPERTIES" error_msg="struts.mapper.alwaysSelectFullNamespace must be false" error_priority="MEDIUM" violates-if="true" issue-in="property" issue-key-name="name,value" checkFor="true"></condition>
+	</conditions>
+</schema>

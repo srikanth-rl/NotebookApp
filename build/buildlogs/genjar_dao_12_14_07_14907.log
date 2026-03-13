@@ -1,0 +1,5 @@
+     [echo] dao:jarcreation
+     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-dao.jar
+     [echo] fileincludes:-com/zoho/notebook/dao/**
+     [echo] fileexcludes:-
+      [jar] Building jar: /home/sri-24601/eclipse-workspace/NoteBook/build/NoteBook_build_stage/war_dir/WEB-INF/lib/nb-dao.jar

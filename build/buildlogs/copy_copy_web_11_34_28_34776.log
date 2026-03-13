@@ -1,0 +1,9 @@
+     [echo] copy task param:-copy_web
+     [echo] todir:-./NoteBook_build_stage/war_dir
+     [echo] srcdir:-../src/main/webapp
+     [echo] includes:-**
+     [echo] excludes:-${copy_excludes_match} build/checks.xml
+     [echo] mapper type:-identity
+     [echo] mapper from:-${mapperfrom}
+     [echo] mapper to:-${mapperto}
+     [copy] Copying 14 files to /home/sri-24601/eclipse-workspace/NoteBook/build/NoteBook_build_stage/war_dir

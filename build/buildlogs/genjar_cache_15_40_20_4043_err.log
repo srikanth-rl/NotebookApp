@@ -1,0 +1,4 @@
+     [echo] cache:jarcreation
+     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-cache.jar
+     [echo] fileincludes:-com/zoho/notebook/cache/**
+     [echo] fileexcludes:-

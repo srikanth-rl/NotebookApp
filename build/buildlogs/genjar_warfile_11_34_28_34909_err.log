@@ -1,0 +1,4 @@
+     [echo] warfile:jarcreation
+     [echo] jarfile:-./NoteBook_build_stage/ROOT.war
+     [echo] fileincludes:-**
+     [echo] fileexcludes:-${jarexcludes}

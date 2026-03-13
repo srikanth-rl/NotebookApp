@@ -1,0 +1,601 @@
+/*
+ * Copyright (c) 2007-2023, Arshan Dabirsiaghi, Jason Li
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted
+ * provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this list of conditions
+ * and the following disclaimer. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution. Neither the name of OWASP nor the names of its
+ * contributors may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package org.owasp.validator.html.scan;
+
+import java.net.MalformedURLException;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import org.htmlunit.cyberneko.filters.DefaultFilter;
+import org.htmlunit.cyberneko.xerces.util.XMLAttributesImpl;
+import org.htmlunit.cyberneko.xerces.xni.Augmentations;
+import org.htmlunit.cyberneko.xerces.xni.QName;
+import org.htmlunit.cyberneko.xerces.xni.XMLAttributes;
+import org.htmlunit.cyberneko.xerces.xni.XMLString;
+import org.htmlunit.cyberneko.xerces.xni.XNIException;
+import org.htmlunit.cyberneko.xerces.xni.parser.XMLDocumentFilter;
+import org.owasp.validator.html.CleanResults;
+import org.owasp.validator.html.InternalPolicy;
+import org.owasp.validator.html.Policy;
+import org.owasp.validator.html.ScanException;
+import org.owasp.validator.html.model.Attribute;
+import org.owasp.validator.html.model.Tag;
+import org.owasp.validator.html.util.ErrorMessageUtil;
+import org.owasp.validator.html.util.HTMLEntityEncoder;
+//ZOHO Imports
+import org.owasp.validator.css.ZohoCssScanner;
+import com.zoho.security.validator.url.URLValidatorAPI;
+import com.zoho.security.validator.url.ZSecURL;
+
+/**
+ * Implementation of an HTML-filter that adheres to an AntiSamy policy. This filter is SAX-based
+ * which means it is much more memory-efficient and also a bit faster than the DOM-based
+ * implementation.
+ */
+public class MagicSAXFilter extends DefaultFilter implements XMLDocumentFilter {
+
+  private enum Ops {
+    CSS,
+    FILTER,
+    REMOVE,
+    TRUNCATE,
+    KEEP,
+    ENCODE
+  }
+
+  private final Stack<Ops> operations = new Stack<Ops>();
+  private final List<String> errorMessages = new ArrayList<String>();
+  private StringBuffer cssContent = null;
+  private XMLAttributes cssAttributes = null;
+    private InternalPolicy policy;
+  private ResourceBundle messages;
+
+  private boolean isNofollowAnchors;
+  private boolean isNoopenerAndNoreferrerAnchors;
+  private boolean isValidateParamAsEmbed;
+  private boolean inCdata = false;
+  // From policy
+  private boolean preserveComments;
+  private int maxInputSize;
+  private boolean shouldParseImportedStyles;
+  //ZOHO Variables
+	private ZohoCssScanner zohoCssScanner = null;
+
+  public MagicSAXFilter(ResourceBundle messages) {
+    this.messages = messages;
+  }
+
+  public void reset(InternalPolicy instance) {
+    this.policy = instance;
+    isNofollowAnchors = policy.isNofollowAnchors();
+    isNoopenerAndNoreferrerAnchors = policy.isNoopenerAndNoreferrerAnchors();
+    isValidateParamAsEmbed = policy.isValidateParamAsEmbed();
+    preserveComments = policy.isPreserveComments();
+    maxInputSize = policy.getMaxInputSize();
+    shouldParseImportedStyles = policy.isEmbedStyleSheets();
+    operations.clear();
+    errorMessages.clear();
+    cssContent = null;
+    cssAttributes = null;
+    zohoCssScanner = null;
+    inCdata = false;
+  }
+
+  @Override
+  public void characters(XMLString text, Augmentations augs) throws XNIException {
+
+    Ops topOp = peekTop();
+    //noinspection StatementWithEmptyBody
+    if (topOp == Ops.REMOVE) {
+      // content is removed altogether
+    } else if (topOp == Ops.CSS) {
+      // we record the style element's text content
+      // to filter it later
+      cssContent.append(text.toString());
+    } else {
+      // pass through all character content.
+      if (inCdata) {
+        String encoded = HTMLEntityEncoder.htmlEntityEncode(text.toString());
+        addError(ErrorMessageUtil.ERROR_CDATA_FOUND, new Object[] {encoded});
+      }
+      super.characters(text, augs);
+    }
+  }
+
+  // Zoho : Case sensitive check is added because IE conditional comments ([IF IE 8] or [if IE 8]) is case insensitive.);
+	private static final Pattern conditionalDirectives = Pattern.compile("<?!?\\[\\s*(?:end)?if[^]]*\\]>?", Pattern.CASE_INSENSITIVE);
+
+  @Override
+  public void comment(XMLString text, Augmentations augs) throws XNIException {
+
+    if (preserveComments) {
+      String value = text.toString();
+      // Strip conditional directives regardless of the
+      // PRESERVE_COMMENTS setting.
+      if (value != null) {
+        value = conditionalDirectives.matcher(value).replaceAll("");
+        super.comment(new XMLString(value.toCharArray(), 0, value.length()), augs);
+      }
+    }
+  }
+
+  @Override
+  public void doctypeDecl(String root, String publicId, String systemId, Augmentations augs)
+      throws XNIException {
+    // user supplied doctypes are ignored
+  }
+
+  @Override
+  public void emptyElement(QName element, XMLAttributes attributes, Augmentations augs)
+      throws XNIException {
+    this.startElement(element, attributes, augs);
+    this.endElement(element, augs);
+  }
+
+  private Ops peekTop() {
+    return operations.empty() ? null : operations.peek();
+  }
+
+  private XMLString makeEndTag(String tagName) {
+    String endTag = "</" + tagName + ">";
+    return new XMLString(endTag.toCharArray(), 0, endTag.length());
+  }
+
+  @Override
+  public void endElement(QName element, Augmentations augs) throws XNIException {
+    Ops topOp = peekTop();
+    if (Ops.REMOVE == topOp) {
+      // content is removed altogether
+      operations.pop();
+    } else if (Ops.FILTER == topOp) {
+      // content is removed, but child nodes not
+      operations.pop();
+    } else if (Ops.ENCODE == topOp) {
+      // if encoding this element, insert closing tag: super.characters will encode the string
+      // buffer
+      operations.pop();
+      super.characters(makeEndTag(element.getRawname()), augs);
+    } else if (Ops.CSS == topOp) {
+      operations.pop();
+      // ZOHO FEATURE :: css-parser 0.9.20 is used to parse CSS (to support CSS3)
+			ZohoCssScanner cssScanner = makeCssScanner();
+      try {
+        CleanResults results = cssScanner.scanStyleSheet(cssContent.toString());
+        // report all errors found
+        errorMessages.addAll(results.getErrorMessages());
+        /*
+         * If IE gets an empty style tag, i.e. <style/> it will break
+         * all CSS on the page. I wish I was kidding. So, if after
+         * validation no CSS properties are left, we would normally be
+         * left with an empty style tag and break all CSS. To prevent
+         * that, we have this check.
+         */
+        //noinspection StatementWithEmptyBody
+        if (results.getCleanHTML() == null || results.getCleanHTML().equals("")) {
+          // we do not generate empty style elements
+        } else {
+          // XMLAttributes attributes = new XMLAttributesImpl();
+          // attributes.addAttribute(makeSimpleQname("type"), "CDATA",
+          // "text/css");
+          // start the CSS element
+
+          super.startElement(element, cssAttributes, augs);
+          // send the cleaned content
+          String cleanHtml = results.getCleanHTML();
+          super.characters(new XMLString(cleanHtml.toCharArray(), 0, cleanHtml.length()), augs);
+          // end the CSS element
+          super.endElement(element, augs);
+        }
+      } catch (ScanException e) {
+        // if the CSS is unscannable, we report the error, but skip the
+        // style element
+        addError(
+            ErrorMessageUtil.ERROR_CSS_TAG_MALFORMED,
+            new Object[] {HTMLEntityEncoder.htmlEntityEncode(cssContent.toString())});
+      } finally {
+        // reset the string buffer to allow fresh recording of next
+        // style tag
+        cssContent = null;
+        cssAttributes = null;
+      }
+    } else {
+      // keep or truncate means the end-tag stays intact
+      operations.pop();
+      super.endElement(element, augs);
+    }
+  }
+
+  private ZohoCssScanner makeCssScanner() {
+    if (zohoCssScanner == null) {
+      zohoCssScanner = new ZohoCssScanner(policy, messages);
+    }
+    return zohoCssScanner;
+  }
+
+  @Override
+  public void processingInstruction(String target, XMLString data, Augmentations augs)
+      throws XNIException {
+    // processing instructions are being removed
+  }
+
+  @Override
+  public void startCDATA(Augmentations augs) throws XNIException {
+    inCdata = true;
+    super.startCDATA(augs);
+  }
+
+  @Override
+  public void endCDATA(Augmentations augs) throws XNIException {
+    inCdata = false;
+    super.endCDATA(augs);
+  }
+
+  @Override
+  public void startElement(QName element, XMLAttributes attributes, Augmentations augs)
+      throws XNIException {
+    // see if we have a policy for this tag.
+    String tagNameLowerCase = element.getLocalpart().toLowerCase();
+    Tag tag = policy.getTagByLowercaseName(tagNameLowerCase);
+
+    /*
+     * Handle the automatic translation of <param> to nested <embed> for IE.
+     * This is only if the "validateParamAsEmbed" directive is enabled.
+     */
+    boolean masqueradingParam = false;
+    String embedName = null;
+    String embedValue = null;
+    if (tag == null && isValidateParamAsEmbed && "param".equals(tagNameLowerCase)) {
+      Tag embedPolicy = policy.getEmbedTag();
+      if (embedPolicy != null && embedPolicy.isAction(Policy.ACTION_VALIDATE)) {
+        tag = embedPolicy; // Constants.BASIC_PARAM_TAG_RULE;
+        masqueradingParam = true;
+        // take <param name=x value=y> and turn into
+        // <embed x=y></embed>
+        embedName = attributes.getValue("name");
+        embedValue = attributes.getValue("value");
+        XMLAttributes masqueradingAttrs = new XMLAttributesImpl();
+        masqueradingAttrs.addAttribute(makeSimpleQname(embedName), "CDATA", embedValue);
+        attributes = masqueradingAttrs;
+      }
+    }
+
+    XMLAttributes validattributes = new XMLAttributesImpl();
+    // Add 'sandbox' attribute in <iframe> tag when <iframe> exists.
+		addInsertAttributes(tag, null, validattributes, null, null);
+    Ops topOp = peekTop();
+    if (Ops.REMOVE == topOp || Ops.CSS == topOp) {
+      // we are in removal-mode, so remove this tag as well
+      // we also remove all child elements of a style element
+      this.operations.push(Ops.REMOVE);
+    } else if ((tag == null && policy.isEncodeUnknownTag())
+        || (tag != null && tag.isAction(Policy.ACTION_ENCODE))) {
+      String name = "<" + element.getLocalpart() + ">";
+      super.characters(new XMLString(name.toCharArray(), 0, name.length()), augs);
+      this.operations.push(Ops.ENCODE);
+    } else if (tag == null) {
+      addError(
+          ErrorMessageUtil.ERROR_TAG_NOT_IN_POLICY,
+          new Object[] {HTMLEntityEncoder.htmlEntityEncode(element.getLocalpart())});
+      this.operations.push(Ops.FILTER);
+    } else if (tag.isAction(Policy.ACTION_FILTER)) {
+      addError(
+          ErrorMessageUtil.ERROR_TAG_FILTERED,
+          new Object[] {HTMLEntityEncoder.htmlEntityEncode(element.getLocalpart())});
+      this.operations.push(Ops.FILTER);
+    } else if (tag.isAction("validate")) {
+/* ZOHO FIX <style> @import  hacks
+			 * Due to setting "match" (default is lower) in neko property
+			 * 'http://cyberneko.org/html/properties/names/elems'  antisamy removes only
+			 *  @import in <style> (lowercase) and failed for other cases <Style>,<STYLE> etc.,
+			 *  Fixed by adding case-insensitive check for style tag.
+			 */
+			boolean isStyle = "style".endsWith(element.getLocalpart().toLowerCase());
+
+      // validate all attributes, we need to do this now to find out
+      // how to deal with the element
+      boolean removeTag = false;
+      boolean filterTag = false;
+      /* ZOHO FEATURE :  Supported new attribute "mandatory" in <attribute> tag
+			 *                 when this attribute is enabled , antisamy checks the existence of mandatory attribute in tag.
+			 *                 Otherwise, entire tag will be removed
+			 */
+			boolean match = false;
+			List<String> mandatoryAttributes = tag.getMandatoryAttributes();
+			if (mandatoryAttributes != null) {
+				if (attributes.getLength() != 0) {
+					for (String mandatoryAttribute : mandatoryAttributes) {
+						match = false;
+						for (int currentAttributeIndex = 0; currentAttributeIndex < attributes.getLength(); currentAttributeIndex++) {
+							String nameLower = attributes.getQName(currentAttributeIndex).toLowerCase();
+							if (mandatoryAttribute.equals(nameLower)) {
+								match = true;
+								break;
+							}
+						}
+						if (!match) {
+							removeTag = true;
+							break;
+						}
+					}
+				} else {
+					removeTag = true;
+				}
+			}
+			if (!removeTag) {
+      for (int i = 0; i < attributes.getLength(); i++) {
+        String name = attributes.getQName(i);
+        String value = attributes.getValue(i);
+        String nameLower = name.toLowerCase();
+          /*
+					 * ZOHO Fix, Based on the browser behaviour, When same attribute repeats with different value in a tag, the first one is taken.
+					 * 		Example, Input : <div id="1" id="2">Hello</div>
+					 * 				 Before Fix: <div id="2">Hello</div>
+					 *               After Fix: <div id="1">Hello</div>
+					 */
+					if (!isAttributeExists(validattributes, nameLower)) {
+        Attribute attribute = tag.getAttributeByName(nameLower);
+        if (attribute == null) {
+          // no policy defined, perhaps it is a global attribute
+          attribute = policy.getGlobalAttributeByName(nameLower);
+          if (attribute == null && policy.isAllowDynamicAttributes()) {
+            // not a global attribute, perhaps it is a dynamic attribute, if allowed
+            attribute = policy.getDynamicAttributeByName(nameLower);
+          }
+        }
+        // boolean isAttributeValid = false;
+        if ("style".equalsIgnoreCase(name)) {
+          ZohoCssScanner styleScanner = makeCssScanner();
+          try {
+            CleanResults cr = styleScanner.scanInlineStyle(value);
+            attributes.setValue(i, cr.getCleanHTML());
+            validattributes.addAttribute(makeSimpleQname(name), "CDATA", cr.getCleanHTML());
+            errorMessages.addAll(cr.getErrorMessages());
+          } catch (ScanException e) {
+            addError(
+                ErrorMessageUtil.ERROR_CSS_ATTRIBUTE_MALFORMED,
+                new Object[] {element.getLocalpart(), HTMLEntityEncoder.htmlEntityEncode(value)});
+          }
+        } else if (attribute != null) {
+          // validate the values against the policy
+          boolean isValid = false;
+          URLValidatorAPI urlValidator = policy.getUrlValidator();
+							if (policy.isEnabledURLValidation() && urlValidator != null && policy.getURLValidation_Attributes().contains(nameLower)) {
+								/*ZOHO Enhancement :  zoho-security-urlvalidator.jar is used to validate url attributes such as href
+								 */
+								ZSecURL urlobj = null;
+								String safeurl = "";
+								try {
+									urlobj = urlValidator.getValidatedURLObject(value);
+									safeurl = urlobj.getSafeURL();
+								} catch (MalformedURLException e) {
+									addError(ErrorMessageUtil.ERROR_ATTRIBUTE_INVALID, new Object[] { element.getLocalpart(), HTMLEntityEncoder.htmlEntityEncode(value) });
+								} catch (StringIndexOutOfBoundsException e) {
+									addError(ErrorMessageUtil.ERROR_ATTRIBUTE_INVALID, new Object[] { element.getLocalpart(), HTMLEntityEncoder.htmlEntityEncode(value) });
+								}
+								validattributes.addAttribute(makeSimpleQname(name), "CDATA", safeurl);
+								isValid = true;
+							}
+							if (!isValid && (attribute.containsAllowedValue(value.toLowerCase()) || attribute.matchesAllowedExpression(value))) {
+            int attrIndex;
+            if ((attrIndex = validattributes.getIndex(name)) > 0) {
+              // If attribute is repeated, use last value.
+              validattributes.setValue(attrIndex, value);
+            } else {
+              validattributes.addAttribute(makeSimpleQname(name), "CDATA", value);
+            }
+            isValid = true;
+          }
+          if (!isValid) {
+		          isValid = attribute.matchesAllowedExpression(value);
+		          if (isValid) {
+		        	  validattributes.addAttribute(makeSimpleQname(name), "CDATA", value);
+              }
+		      }
+          // if value or regexp matched, attribute is already
+          // copied, but what happens if not
+          if (!isValid && "removeTag".equals(attribute.getOnInvalid())) {
+
+            addError(
+                ErrorMessageUtil.ERROR_ATTRIBUTE_INVALID_REMOVED,
+                new Object[] {
+                  tag.getName(),
+                  HTMLEntityEncoder.htmlEntityEncode(name),
+                  HTMLEntityEncoder.htmlEntityEncode(value)
+                });
+
+            removeTag = true;
+
+          } else if (!isValid
+              && ("filterTag".equals(attribute.getOnInvalid()) || masqueradingParam)) {
+
+            addError(
+                ErrorMessageUtil.ERROR_ATTRIBUTE_CAUSE_FILTER,
+                new Object[] {
+                  tag.getName(),
+                  HTMLEntityEncoder.htmlEntityEncode(name),
+                  HTMLEntityEncoder.htmlEntityEncode(value)
+                });
+
+            filterTag = true;
+
+          } else if (!isValid) {
+            addError(
+                ErrorMessageUtil.ERROR_ATTRIBUTE_INVALID,
+                new Object[] {
+                  tag.getName(),
+                  HTMLEntityEncoder.htmlEntityEncode(name),
+                  HTMLEntityEncoder.htmlEntityEncode(value)
+                });
+          }
+
+        } else { // attribute == null
+          addError(
+              ErrorMessageUtil.ERROR_ATTRIBUTE_NOT_IN_POLICY,
+              new Object[] {
+                element.getLocalpart(),
+                HTMLEntityEncoder.htmlEntityEncode(name),
+                HTMLEntityEncoder.htmlEntityEncode(value)
+              });
+
+          if (masqueradingParam) {
+            filterTag = true;
+          }
+        }
+      }
+      }
+			}
+      if (removeTag) {
+        this.operations.push(Ops.REMOVE);
+      } else if (isStyle) {
+        this.operations.push(Ops.CSS);
+        cssContent = new StringBuffer();
+        cssAttributes = validattributes;
+      } else if (filterTag) {
+        this.operations.push(Ops.FILTER);
+      } else {
+
+        if ("a".equals(element.getLocalpart())) {
+          boolean addNofollow = isNofollowAnchors;
+          boolean addNoopenerAndNoreferrer = false;
+
+          if (isNoopenerAndNoreferrerAnchors) {
+            String targetValue = attributes.getValue("target");
+            if (targetValue != null && targetValue.equalsIgnoreCase("_blank")) {
+              addNoopenerAndNoreferrer = true;
+            }
+          }
+
+          String currentRelValue = attributes.getValue("rel");
+          if (currentRelValue != null) {
+            Attribute attribute = tag.getAttributeByName("rel");
+            if (attribute != null
+                && !(attribute.containsAllowedValue(currentRelValue)
+                    || attribute.matchesAllowedExpression(currentRelValue))) {
+              currentRelValue = "";
+            }
+          }
+          String relValue =
+              Attribute.mergeRelValuesInAnchor(
+                  addNofollow, addNoopenerAndNoreferrer, currentRelValue);
+          if (!relValue.isEmpty()) {
+            int relIndex;
+            if ((relIndex = validattributes.getIndex("rel")) > 0) {
+              validattributes.setValue(relIndex, relValue);
+            } else {
+              validattributes.addAttribute(makeSimpleQname("rel"), "CDATA", relValue);
+            }
+          }
+        }
+
+        if (masqueradingParam) {
+          validattributes = new XMLAttributesImpl();
+          validattributes.addAttribute(makeSimpleQname("name"), "CDATA", embedName);
+          validattributes.addAttribute(makeSimpleQname("value"), "CDATA", embedValue);
+        }
+
+        this.operations.push(Ops.KEEP);
+      }
+
+    } else if (tag.isAction(Policy.ACTION_TRUNCATE)) {
+      this.operations.push(Ops.TRUNCATE);
+    } else {
+      // no options left, so the tag will be removed
+      addError(
+          ErrorMessageUtil.ERROR_TAG_DISALLOWED,
+          new Object[] {HTMLEntityEncoder.htmlEntityEncode(element.getLocalpart())});
+      this.operations.push(Ops.REMOVE);
+    }
+    // now we know exactly what to do, let's do it
+    if (Ops.TRUNCATE.equals(operations.peek())) {
+      // copy the element, but remove all attributes
+      super.startElement(element, new XMLAttributesImpl(), augs);
+    } else if (Ops.KEEP.equals(operations.peek())) {
+      // copy the element, but only copy accepted attributes
+      super.startElement(element, validattributes, augs);
+    }
+  }
+
+	/**
+	 * @param validattributes
+	 * @param attrName
+	 * @return boolean, If the validattributes list contains attrName return true if else, return false.
+	 */
+	private boolean isAttributeExists(XMLAttributes validattributes, String attrName) {
+		for (int i = 0; i < validattributes.getLength(); i++) {
+			if (attrName.equals(validattributes.getQName(i))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/*
+	 * ZOHO Feature,
+	 *		Feature : To insert an attribute inside a tag.
+	 *		Refer -> 1. https://www.jitbit.com/alexblog/256-targetblank---the-most-underestimated-vulnerability-ever/
+	 *		Intranet wiki pages :
+	 * 			1. https://intranet.wiki.zoho.com/security/Antisamy-Filter-Enhancements.html#Enhancement_-_2
+	 *				2. https://intranet.wiki.zoho.com/security/Antisamy---addressing---target---blank.html
+	 */
+	private void addInsertAttributes(Tag tag, Attribute attribute, XMLAttributes validattributes, String name, String value) {
+		List<Attribute> insertAttributes = tag != null ? tag.getInsertAttributes() : null;
+		if (insertAttributes != null) {
+			for (Attribute insertAttribute : insertAttributes) {
+				String insertAttrName = insertAttribute.getName();
+				List<String> insertAttrValues = insertAttribute.getInsertValues();
+				if (insertAttrValues.size() == 0) {
+					Attribute tagAttribute = tag.getAttributeByName(insertAttrName);
+					if (tagAttribute != null) {
+						insertAttrValues = tagAttribute.getAllowedValues();
+					}
+				}
+
+				if (!insertAttribute.isCriteriaMatched(name, value, attribute)) {
+					continue;
+				}
+				String insertAttrValue = "";
+				for (String insertValue : insertAttrValues) {
+					insertAttrValue = insertAttrValue + insertValue + " ";
+				}
+				insertAttrValue = insertAttrValue.trim();
+				validattributes.addAttribute(makeSimpleQname(insertAttrName), "CDATA", insertAttrValue);
+			}
+		}
+	}
+
+  private QName makeSimpleQname(String name) {
+    return new QName("", name, name, "");
+  }
+
+  private void addError(String errorKey, Object[] objs) {
+    errorMessages.add(ErrorMessageUtil.getMessage(messages, errorKey, objs));
+  }
+
+  public List<String> getErrorMessages() {
+    // Return a copy of the errorMessages so caller can't change internal copy.
+    return new ArrayList<String>(errorMessages);
+  }
+}

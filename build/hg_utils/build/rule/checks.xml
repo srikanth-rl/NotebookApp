@@ -1,0 +1,322 @@
+<!DOCTYPE project [
+<!ENTITY library SYSTEM "./library.xml">
+]>
+
+<project name="build" default="all" basedir=".">
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+    <property environment="env"/>
+    <property file="ant.properties"/>
+    
+&library;
+
+
+<!-- ======================================================================
+                                            PreCheck Task
+====================================================================== -->
+
+<if>
+<available file="${basedir}/temp_dependency_details_ref.txt" type="file"/>
+
+<then>
+        <loadfile property="tmpfile" srcfile="${basedir}/temp_dependency_details_ref.txt"/>
+
+</then>
+<else>
+        <echo message="Local build mickey lite pre check not needed."/>
+</else>
+</if>
+
+
+<target name="mikeylite_get" >
+	
+   <propertyregex property="sas_buildstatus" input="${tmpfile}" regexp="(.*http://build/framework/saslite.*)" select="\1" casesensitive="true" override="true"/>
+   <propertyregex property="mickey_buildstatus" input="${tmpfile}" regexp="(.*http://build/framework/mickeylite/.*)" select="\1" casesensitive="true" override="true"/>
+
+
+	<if>
+          <and>
+          <isset property="sas_buildstatus"/>
+          <isset property="mickey_buildstatus"/>
+           </and>
+       <then>
+
+	<mkdir dir="${basedir}/mickey_precheck/"/>
+
+    <for param="line" list="${tmpfile}" delimiter="${line.separator}">
+      <sequential>
+
+	<if>
+	       <contains casesensitive="false" substring="saslite" string="@{line}"/>
+	       <then>
+
+                <for param="linename" list="@{line}" delimiter="=">
+                <sequential>
+               <propertyregex property="saskey" input="@{line}" regexp="([^=]*)=(.*)" select="\2" casesensitive="true" override="true" global="false"/>
+                  </sequential>
+                   </for>
+                <get src="${saskey}" dest="${basedir}/mickey_precheck/sas.zip" verbose="true" usetimestamp="false" ignoreerrors="true" username="" password=""/>
+               <unzip dest="${basedir}/mickey_precheck/">
+                <fileset dir="${basedir}/mickey_precheck/" includes="sas.zip" excludes=""/>
+             </unzip>
+
+         </then>
+       </if>
+
+        <if>
+         <contains casesensitive="false" substring="mickeylite" string="@{line}"/>
+         <then>
+                 <if>
+                
+                        <contains casesensitive="false" substring="milestones" string = "@{line}" />
+                
+                <then>
+
+                        <for param="linename" list="@{line}" delimiter="=">
+                        <sequential>
+                        <propertyregex property="mickeykey" input="@{line}" regexp="([^=]*)=(.*)" select="\2" casesensitive="true" override="true" global="false"/>
+                        </sequential>
+                        </for>
+                        <get src="${mickeykey}" dest="${basedir}/mickey_precheck/ZohoMickeyLite.zip" verbose="true" usetimestamp="false" ignoreerrors="true" username="" password=""/>
+
+                        <unzip dest="${basedir}/mickey_precheck/">
+                                <fileset dir="${basedir}/mickey_precheck/" includes="ZohoMickeyLite.zip" excludes=""/>
+                        </unzip>
+			<if>
+                           <and>
+                              <available file="${basedir}/mickey_precheck/sas.zip" type="file"/>
+                              <available file="${basedir}/mickey_precheck/ZohoMickeyLite.zip" type="file"/>
+                           </and>
+                        <then>			
+	
+                        	<java classpath="${basedir}/mickey_precheck/AdventNet/MickeyLite/lib/framework-tools.jar" fork="yes" classname="com.zoho.compatibility.MickeySASCompatibilityChecker" >
+	                        <arg line="${basedir}/mickey_precheck/AdventNet/MickeyLite/blog/ ${basedir}/mickey_precheck/blog/"/>
+        	                </java>
+	
+				<if>
+                	                <available file="${basedir}/ErrorFile.txt" type="file"/>
+                        	<then>
+                                	<loadfile property="message" srcFile="${basedir}/ErrorFile.txt"/>
+	                                <fail message="${message}... Hence quitting the build.."/>
+        	                </then>
+                	        </if>
+				</then>
+				<else>
+        	                        <echo message="Mickeylite pre check not needed"/>
+                	        </else>
+                        </if>
+
+
+                 </then>
+                </if>
+         </then>
+         </if>
+
+      </sequential>
+    </for>
+	</then>
+	</if>
+</target>
+
+
+<target name="precheck">
+
+<ant antfile="${basedir}/accountsurlcheck.xml" target="accountscheck"/>
+<antcall target="all"/>
+
+</target>
+
+<!-- ============================================================================
+       CALLING ALL TARGETS IN ORDER
+     =========================================================================-->
+
+<target name="all" depends="mikeylite_get">
+<mkdir dir="${basedir}/buildlogs"/>
+<mkdir dir="${build_dir}"/>
+<echo message="&lt;html&gt;" file="${basedir}/buildlogs/buildtime.html"/>
+<echo message="&lt;script src='http://cm-old/jquery-latest.min.js' &gt;&lt;/script&gt;" file='${basedir}/buildlogs/buildtime.html' append='yes'/>
+<echo message="&lt;script &gt;$(document).ready(function(){$('tr#anttasks').each(function(){ if ($(this).find('td#time').length == 0){$(this).css('color', 'red');}});});&lt;/script&gt;" file="${basedir}/buildlogs/buildtime.html" append='yes'/>
+<echo message="&lt;div style='text-align: center;'&gt;&lt;table align='center' style='border: 1px solid #ddd; margin-bottom: 20px;background-color: transparent; border-spacing: 0;border-collapse: collapse;'&gt;" file="${basedir}/buildlogs/buildtime.html" append="yes"/>
+<echo message="&lt;tr&gt;&lt;th colspan=2 style='border-bottom-width: 2px; border: 1px solid #ddd; vertical-align: bottom;'&gt;tasks &amp; variable&lt;/th&gt;&lt;th style='border-bottom-width: 2px; border: 1px solid #ddd; vertical-align: bottom;'&gt;time taken&lt;/th&gt;&lt;/tr&gt;" file="${basedir}/buildlogs/buildtime.html" append="yes"/>
+<stopwatch name="total_time" action="start"/>
+<if>
+     <isset property="target"/>
+     <then>
+        <propertycopy name="build_order" from="${target}_order" silent="true"/>
+     </then>
+     <else>
+        <propertycopy name="build_order" from="local_order" silent="true"/>
+     </else>
+</if>
+<echo message="calltarget :${target}"/>
+<echo message="target order:${build_order}"/>
+<foreach list="${build_order}"
+                target="calltarget"
+                inheritall="true"
+                param="prop">
+</foreach>
+<stopwatch name="total_time" action="total"/>
+<echo message="&lt;div style='width: 100%; text-align:center;'&gt;&lt;h3 style='border-bottom: 1px solid #CCC; padding-bottom: 25px; line-height: 30px;font-weight:normal;color: #4E4E4E;margin: 0px;padding: 10px 20px;letter-spacing: 0.5px;'&gt;Total build time is &lt;b&gt;${total_time}&lt;/b&gt;&lt;/h3&gt;&lt;/div&gt;" file="${basedir}/buildlogs/buildtime.html" append="yes"/>
+<echo message="&lt;/div&gt;&lt;/table&gt;" file="${basedir}/buildlogs/buildtime.html" append="yes"/>
+<echo message="&lt;/html&gt;" file="${basedir}/buildlogs/buildtime.html" append="yes"/>
+</target>
+
+<!-- ======================================================================
+                                                CALLTARGET  TARGET
+====================================================================== -->
+
+<target name="calltarget">
+
+<stopwatch name="${prop}_time" action="start"/>
+<propertycopy name="call" from="${prop}_order" silent="true"/>
+<propertycopy name="call_needed" from="${prop}_needed" silent="true"/>
+<if>
+        <equals arg1="${call_needed}" arg2="no"/>
+        <then>
+                <echo message="value of ${prop}_needed is No. So ${prop}_order has to be quited"/>
+        </then>
+	<else>
+		<foreach list="${call}"
+	                target="calltask"
+	                inheritall="true"
+	                param="prop">
+		</foreach>
+	</else>
+</if>
+
+<stopwatch name="${prop}_time" action="total"/>
+
+<propertycopy name="timer" from="${prop}_time" silent="true"/>
+<echo message="Total time taken by ${prop} is ${timer} ------------"/>
+
+<echo message="&lt;tr&gt;" file="${basedir}/buildlogs/buildtime.html" append="yes"/>
+<echo message="&lt;td style='padding: 8px; line-height: 1.42857143; vertical-align: top; box-sizing: border-box;'&gt;Total time taken by &lt;/td&gt;&lt;td style='padding: 8px; line-height: 1.42857143; vertical-align: top; box-sizing: border-box;'&gt;&lt;b&gt;${prop} &lt;/b&gt;&lt;/td&gt;&lt;td style='border: 1px solid #ddd; padding: 8px; line-height: 1.42857143; vertical-align: top; box-sizing: border-box;'&gt;&lt;b&gt; ${timer} &lt;/b&gt;&lt;/td&gt;" file="${basedir}/buildlogs/buildtime.html" append="yes"/>
+<echo message="&lt;/tr&gt;&lt;tr&gt;&lt;/tr&gt;" file="${basedir}/buildlogs/buildtime.html" append="yes"/>
+</target>
+
+<!-- ======================================================================
+                                                CALLTASK  TARGET
+====================================================================== -->
+
+<target name="calltask">
+	<stopwatch name="${prop}_tasktime" action="start"/>
+<propertyregex property="task"
+               input="${prop}"
+                     regexp="(.*):"
+                                                         select="\1"
+                                       casesensitive="false" />
+
+<propertyregex property="param"
+               input="${prop}"
+                     regexp=":(.*)"
+                                                         select="\1"
+                                       casesensitive="false" />
+
+
+<echo message="${prop}"/>
+<echo message="task:${task}"/>
+<echo message="param:${param}"/>
+
+<!-- operation targets called here with parameter -->
+<property name="calltask" value="${param}_${task}" />
+<propertycopy name="calltaskneeded" from="${calltask}_needed" silent="true"/>
+<propertycopy name="description" from="${param}_${task}_description" silent="true"/>
+<echo message="DESC : ${description}"/>
+<if>
+        <equals arg1="${calltaskneeded}" arg2="no"/>
+        <then>
+		<echo message="Quitting ${calltask} as it is not needed"/>
+        </then>
+<else>
+
+<tstamp>
+	<format property="start.time" pattern="hh:mm:ss aa" timezone='Asia/Kolkata' />
+</tstamp>
+<echo message="&lt;tr id='anttasks'&gt;" file="${basedir}/buildlogs/buildtime.html" append="true"/>
+<stopwatch name="${param}_time" action="start"/>
+<if>
+    <isset property="description"/>
+    <then>
+	    <echo message="${description} started  @ ${start.time}&lt;br&gt;" file="${basedir}/buildlogs/process.html" append="yes"/>
+	    <echo message="${task}:${param}_started ${line.separator}" file="${basedir}/buildlogs/taskname.txt" append="yes"/>
+	    <record name="${basedir}/buildlogs/process.txt" action="start" loglevel="warn" append="yes"/>
+            <echo message="${task}:${param}_started"/>
+            <record name="${basedir}/buildlogs/process.txt" action="stop" loglevel="warn" append="yes"/>
+            <echo message="&lt;td style='border: 1px solid #ddd; padding: 8px; line-height: 1.42857143; vertical-align: top; box-sizing: border-box;'&gt;${task}&lt;/td&gt;&lt;td style='border: 1px solid #ddd; padding: 8px; line-height: 1.42857143; vertical-align: top; box-sizing: border-box;'&gt;${param}&lt;/td&gt;" file="${basedir}/buildlogs/buildtime.html" append="yes"/>
+    </then>
+<else>
+	<echo message="${task} task started for ${param} @ ${start.time}&lt;br&gt;" file="${basedir}/buildlogs/process.html" append="yes"/>
+	<echo message="${task}:${param}_started ${line.separator}" file="${basedir}/buildlogs/taskname.txt" append="yes"/>
+	<record name="${basedir}/buildlogs/process.txt" action="start" loglevel="warn" append="yes"/>
+	<echo message="${task}:${param}_started"/>
+	<record name="${basedir}/buildlogs/process.txt" action="stop" loglevel="warn" append="yes"/>
+        <echo message="&lt;td style='border: 1px solid #ddd; padding: 8px; line-height: 1.42857143; vertical-align: top; box-sizing: border-box;'&gt;${task}&lt;/td&gt;&lt;td style='border: 1px solid #ddd; padding: 8px; line-height: 1.42857143; vertical-align: top; box-sizing: border-box;'&gt;${param}&lt;/td&gt;" file="${basedir}/buildlogs/buildtime.html" append="yes"/>
+
+</else>
+</if>
+<echo message="${task} task started for ${param} @ ${start.time}"/>
+
+<antcall target="${task}">
+<param name="val" value="${param}"/>
+</antcall>
+
+<tstamp>
+	<format property="end.time" pattern="hh:mm:ss aa"  timezone='Asia/Kolkata'/>
+</tstamp>
+<echo message="----------------- ${task} task started for ${param} @ ${start.time} ----------------------"/>
+<echo message="----------------- ${task} task ended for ${param} @ ${end.time} ----------------------"/>
+
+<stopwatch name="${param}_time" action="total"/>
+<propertycopy name="total_param_time" from="${param}_time" silent="true"/>
+
+<if>
+	<isset property="description"/>
+	<then>
+		<echo message="${description} ended @ ${end.time}&lt;br&gt;" file="${basedir}/buildlogs/process.html" append="yes"/>
+		<echo message="Total time for ${description} : ${total_param_time}&lt;br&gt;" file="${basedir}/buildlogs/process.html" append="yes"/>
+		<echo message="&lt;br&gt;" file="${basedir}/buildlogs/process.html" append="yes"/>
+		<echo message="${task}:${param}_ended ${line.separator}" file="${basedir}/buildlogs/taskname.txt" append="yes"/>
+		<record name="${basedir}/buildlogs/process.txt" action="start" loglevel="warn" append="yes"/>
+	       <echo message="${task}:${param}_ended"/>
+	        <record name="${basedir}/buildlogs/process.txt" action="stop" loglevel="warn" append="yes"/>
+
+	</then>
+<else>
+	<echo message="${task} task ended for ${param} @ ${end.time}&lt;br&gt;" file="${basedir}/buildlogs/process.html" append="yes"/>
+	<echo message="Total time for ${task} task for ${param} : ${total_param_time}&lt;br&gt;" file="${basedir}/buildlogs/process.html" append="yes"/>
+	<echo message="&lt;br&gt;" file="${basedir}/buildlogs/process.html" append="yes"/>
+	<echo message="${task}:${param}_ended ${line.separator}" file="${basedir}/buildlogs/taskname.txt" append="yes"/>
+	<record name="${basedir}/buildlogs/process.txt" action="start" loglevel="warn" append="yes"/>
+	<echo message="${task}:${param}_ended"/>
+	<record name="${basedir}/buildlogs/process.txt" action="stop" loglevel="warn" append="yes"/>
+	
+</else>
+</if>
+
+</else>
+</if>
+
+<stopwatch name="${prop}_tasktime" action="total"/>
+<propertycopy name="tasktimer" from="${prop}_tasktime" silent="true"/>
+<echo message="&lt;td id='time' style='border: 1px solid #ddd; padding: 8px; line-height: 1.42857143; vertical-align: top; box-sizing: border-box;'&gt;${tasktimer} &lt;/td&gt;&lt;/tr&gt;" file="${basedir}/buildlogs/buildtime.html" append="yes"/>
+
+</target>
+
+<!-- ============================================================================
+       CLEAN TASK
+     =========================================================================-->
+
+<target name="clean">
+	<mkdir dir="${basedir}/buildlogs"/>
+	<property name="val" value="clean_build_output"/>
+	<propertyregex property="build_base_dir" input="${build_dir}" regexp="${basedir}/" replace=""/>
+
+	<delete includeemptydirs="true" verbose="true">
+    		<fileset dir="${basedir}" includes="${build_base_dir}/** buildlogs/** hg_utils/** Propertiesmerge.jar XMLReader.jar accountsurlcheck.xml changeset.txt convertcomment.sh errormsg.txt findbugs_jars.txt hgclone.txt precheck.properties security-audit-precompilation.sh security.xsd security_build_check.sh server_orig.xsl velocity.log **/.hg/**" defaultexcludes="false"/>
+  	</delete>
+
+</target>
+
+</project>
+
+<!--$Id$-->
+

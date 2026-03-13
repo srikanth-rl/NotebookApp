@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema>
+	<groups>
+		<group name="webGroup">
+			<children>
+				<element ref="filter" />
+				<element ref="filter-mapping" />
+				<element ref="servlet" />
+				<element ref="servlet-mapping" />
+				<element ref="error-page" />
+			</children>
+			<conditions>
+				<condition ref="web-appConditions"/>
+			</conditions>
+		</group>
+	</groups>
+	<elements>
+		<element name="web-app">
+			<group ref="webGroup"/>
+		</element>
+		<element name="web-fragment">
+			<group ref="webGroup"/>
+		</element>
+		<element name="filter">
+			<children>
+				<element ref="init-param"/>
+				<element ref="filter-name"/>
+				<element ref="filter-class"/>
+			</children>
+			<conditions>		
+				<condition ref="filtercondition"/>			      			
+			</conditions>
+		</element>
+		<element name="filter-mapping">
+			<children>
+				<element ref="filter-name"/>
+				<element ref="url-pattern"/>
+			</children>
+		</element>
+		<element name="filter-name"></element>
+		<element name="filter-class"></element>
+		<element name="init-param">
+			<children>
+				<element ref="param-name"/>
+				<element ref="param-value"/>
+			</children>
+			<conditions>
+				<condition ref="paramConditions"/>
+			</conditions>
+		</element>
+		<element name="servlet">
+			<children>
+				<element ref="init-param"/>
+				<element ref="servlet-name"/>
+				<element ref="servlet-class"/>
+			</children>
+		</element>
+		<element name="servlet-name"></element>
+		<element name="servlet-class"></element>
+		<element name="servlet-mapping">
+			<children>
+				<element ref="servlet-name"/>
+				<element ref="url-pattern"/>
+			</children>
+		</element>
+		
+		<element name="param-name"></element>
+		<element name="param-value"></element>
+		<element name="url-pattern"></element>
+		<element name="error-page">
+			<children>
+				<element ref="error-code"/>
+				<element ref="location"/>
+			</children>
+		</element>
+		<element name="error-code"></element>
+		<element name="location"></element>
+	</elements>
+	<conditions name="web-appConditions">
+		<condition name="checkIfSecurityFilterConfigured" rule_name="SECURITY_FILTER_NOT_CONFIGURED" error_code="ZSDWE101" error_msg="Security filter configuration is mandatory" error_priority="HIGH" violates-if="false" issue-in="element" checkFor="true"></condition>
+		<condition name="checkFilterOrder" error_code="ZSDWE102" rule_name="FILTER_ORDER_MISMATCH"  error_msg="Only 'com.zoho.instrument.InstrumentFilter' , 'com.zoho.logs.logclient.filter.AccessLogFilter' ,'com.adventnet.zoho.crmplus.agent.filter.CRMPlusFilter' filters are allowed before the security-filter" error_priority="HIGH" violates-if="false" issue-in="element" checkFor="true"></condition>
+	</conditions>
+	<conditions name="paramConditions">
+		<condition name="checkWildcardUrlsExclude" error_code="ZSDWE201" rule_name="EXCLUDE_PATH_CONTAINS_DOT_STAR" error_msg="Exclude url path should not contain .*" error_priority="HIGH" violates-if="true" issue-in="text" issue-key-name="param-name,param-value" checkFor="true" check-xpath-value="//filter[filter-name[text()='Security Filter' or text()='SecurityFilter' ]]/init-param/param-name[text()='exclude']/.." ></condition>
+	</conditions>
+	<conditions name="filtercondition">
+		<condition name="checkDevelopmentMode" error_code="ZSDWE301" rule_name="DEVELOPMENT_MODE_NOT_FALSE"  error_msg="development.mode configuration should be false." error_priority="HIGH" violates-if="true" issue-in="text" issue-key-name="param-name,param-value" checkFor="true" check-xpath-value="//filter[filter-name[text()='Security Filter' or text()='SecurityFilter' ]]/init-param/param-name[text()='development.mode']/.."></condition>
+		<condition name="checkTestMode" error_code="ZSDWE302" rule_name="TEST_MODE_NOT_FALSE"  error_msg="test.mode configuration should be false." error_priority="HIGH" violates-if="true" issue-in="text" issue-key-name="param-name,param-value" checkFor="true" check-xpath-value="//filter[filter-name[text()='Security Filter' or text()='SecurityFilter' ]]/init-param/param-name[text()='test.mode']/.."></condition>
+	</conditions>
+</schema>

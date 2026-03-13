@@ -1,0 +1,27 @@
+     [echo] Compilerarg set in srccompile task is -- ${src_compilerarg}
+     [echo] Local build mickey lite pre check not needed.
+     [echo] ----------- NoteBook 1.0 2026 ------------
+     [echo] -----------total time 0.002 sec ------------
+     [echo] all
+     [echo] com/zoho/notebook/**
+     [echo] /home/sri-24601/IAM_LOCAL/appserver_container/AdventNet/Sas/tomcat/lib/servlet-api.jar:../src/main/webapp/WEB-INF/lib/HikariCP-5.1.0.jar:../src/main/webapp/WEB-INF/lib/slf4j-api-1.7.36.jar:../src/main/webapp/WEB-INF/lib/slf4j-simple-1.7.36.jar:../src/main/webapp/WEB-INF/lib/mysql-connector-j-8.2.0.jar:../src/main/webapp/WEB-INF/lib/jackson-databind-2.15.2.jar:../src/main/webapp/WEB-INF/lib/jackson-core-2.15.2.jar:../src/main/webapp/WEB-INF/lib/jackson-annotations-2.15.2.jar:../src/main/webapp/WEB-INF/lib/snakeyaml-2.2.jar:/home/sri-24601/IAM_LOCAL/appserver_container/AdventNet/Sas/tomcat/lib/servlet-api.jar:../src/main/webapp/WEB-INF/lib/HikariCP-5.1.0.jar:../src/main/webapp/WEB-INF/lib/slf4j-api-1.7.36.jar:../src/main/webapp/WEB-INF/lib/slf4j-simple-1.7.36.jar:../src/main/webapp/WEB-INF/lib/mysql-connector-j-8.2.0.jar:../src/main/webapp/WEB-INF/lib/jackson-databind-2.15.2.jar:../src/main/webapp/WEB-INF/lib/jackson-core-2.15.2.jar:../src/main/webapp/WEB-INF/lib/jackson-annotations-2.15.2.jar:../src/main/webapp/WEB-INF/lib/snakeyaml-2.2.jar
+     [echo] source_dir : ${source_basedir}
+     [echo] task_src_dir : ../src/main/java
+     [echo] classes dir : ./NoteBook_build_stage/classes
+     [echo] ${executable}
+     [echo] ${compiler}
+     [echo] ${backward_comp}
+     [echo] ${compilerarg}
+     [echo] java_src_dir : ../src/main/java
+     [echo] compiler_nowarn : on
+    [javac] /home/sri-24601/eclipse-workspace/NoteBook/build/library.xml:1259: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+     [echo] converting srccompile to normal sorce compilation is finished
+     [echo] converting srccompile to srccompile task is finished
+     [echo] Local build mickey lite pre check not needed.
+     [echo] ----------- NoteBook 1.0 2026 ------------
+     [echo] -----------total time 0.002 sec ------------
+     [echo] all:jarcreation
+     [echo] jarfile:-./NoteBook_build_stage/all_unused.jar
+     [echo] fileincludes:-**
+     [echo] fileexcludes:-
+     [echo] converting ${sjc} to srcgenjar task is finished

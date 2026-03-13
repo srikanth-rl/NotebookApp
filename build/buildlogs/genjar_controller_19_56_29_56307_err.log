@@ -1,0 +1,4 @@
+     [echo] controller:jarcreation
+     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-controller.jar
+     [echo] fileincludes:-com/zoho/notebook/controller/**
+     [echo] fileexcludes:-
