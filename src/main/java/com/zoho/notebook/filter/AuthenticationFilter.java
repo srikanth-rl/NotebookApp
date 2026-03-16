@@ -189,7 +189,7 @@ public class AuthenticationFilter implements Filter {
                 // Validate session against DB/Cache
                 sessionUser = sessionService.validateSessionAndGetUser(sessionId);
             } catch (Exception e) {
-            	LOGGER.log(java.util.logging.Level.SEVERE, "Session validation failed for URI: {0}", new Object[]{requestURI});
+                LOGGER.severe("Session validation failed for URI: " + requestURI);
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 return;
             }

@@ -1,4 +1,0 @@
-     [echo] filter:jarcreation
-     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-filter.jar
-     [echo] fileincludes:-com/zoho/notebook/filter/**
-     [echo] fileexcludes:-

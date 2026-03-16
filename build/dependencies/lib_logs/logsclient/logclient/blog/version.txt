@@ -1,0 +1,12 @@
+Module=ZOHOLOGSERVER
+BuildLabel=ZOHOLOGSERVER_LOGAGENT_9.0_Mar_02_2026_1
+Build_Number=12730623
+Source_Changeset=903852e593fb64f3021b207891e715a75ccb02a0
+BranchName=ZOHOLOGSERVER_LOGAGENT_9.0
+BuildType=WEBHOST
+Build_Comment=Jackson jars version upgrade.
+Build_Date=02-03-26
+build-timestamp= 1772427927
+Current_Build_Url=https://build.zohocorp.com/framework/zohologserver/webhost/ZOHOLOGSERVER_LOGAGENT_9.0/Mar_02_2026_1
+JAVA_HOME=/usr/java/zulujdk17.0.14
+cross_compilation_version=11

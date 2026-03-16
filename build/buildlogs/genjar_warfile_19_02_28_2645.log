@@ -1,5 +1,0 @@
-     [echo] warfile:jarcreation
-     [echo] jarfile:-./NoteBook_build_stage/ROOT.war
-     [echo] fileincludes:-**
-     [echo] fileexcludes:-${jarexcludes}
-      [jar] Building jar: /home/sri-24601/eclipse-workspace/NoteBook/build/NoteBook_build_stage/ROOT.war

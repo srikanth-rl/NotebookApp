@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eventframework>
+	 <transfer-apis>
+        <transfer-api name="AuditLogs" impl="com.zoho.security.eventfw.logImpl.ZohoLogsImplProvider">
+             <type type="default" value="audit" />
+        </transfer-api>
+      </transfer-apis>	
+      
+     <logs>
+		<log name="ATTRIBUTE_MISSING" transfer-api="AuditLogs"/>
+		<log name="DATA_ACCESS" transfer-api="AuditLogs" />
+	</logs>
+	
+</eventframework>

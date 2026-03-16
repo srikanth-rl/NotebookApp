@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- $Id$ -->
+<root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="tp-waf-changes.xsd">
+	<name>antisamy</name>
+	<version>1.7.5</version>
+	<waf-version>3</waf-version>
+	<since>M2_34</since>
+	<description>A library for performing fast,configurable cleansing of HTML coming from untrusted sources</description>
+
+	<waf-versions>
+		<waf-version id="1">
+			<since>M2_32</since>
+			<enhancements>
+				<enhancement>Attribute parsing limit - Only the limited number of attributes scanned and validated by the Antisamy, remaining attributes will be removed. The default limit is 1000.It will substantially reduce the attribute scanning time.</enhancement>
+				<enhancement>Insert Attribute Feature - It is used to insert the configured attribute to the tag, if the configured criteria met. It can prevent location spoofing attack which is possible via target="_blank".</enhancement>
+				<enhancement>Mandatory Attribute - Some attributes are mandatory for HTML tags, if those attributes are not present, then HTML tag will be remove.</enhancement>
+				<enhancement>WAF URL Validation Adoption - to validate url attributes such as href</enhancement>
+				<enhancement>Migrated Antisamy from batik.jar to cssparser.jar which supports CSS3.</enhancement>
+				<enhancement>Dropped all httpclient and httpcore jar dependencies in antisamy CSS filtering, to rule out any SSRF attacks posing as import URls.</enhancement>
+				<enhancement>style import hacks fixed by adding case-insensitive check for style tag</enhancement>
+				<enhancement>Extend policy customisation - Introduced new custom attribute 'remove=true'. used to remove existing configuration from the policy and it's play vital role while extending policy files with removing some configuration like directives, common-attributes ... etc.</enhancement>
+				<enhancement>Directive skipEscapeHtmlTags - to avoid html encoding for non HTML cases like 1 &lt; 2</enhancement>
+				<enhancement>Directive encodeNonBreakingSpace - used to avoid decoding of &amp;nbsp; to space</enhancement>
+				<enhancement>Directive skipEscapeSingleQuote - To avoid single quote encoding for internal styles</enhancement>
+				<enhancement>Directive includeCssSpace - To remove the space in between the css property and its value </enhancement>
+				<enhancement>Directive preserveCssUrlQuotes - To preserve quotes inside the css function url </enhancement>
+			</enhancements>
+
+			<filechanges>
+				<file package="org.owasp.validator.css" name="ExternalCssScanner.java" type="modified">
+					<changes>
+						<change type="modified" api="all" detail="This class is practically deprecated to drop all httpclient and httpcore jar dependencies to rule out any SSRF attacks posing as import URls. So commented all the related imports and methods." />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html" name="InternalPolicy.java" type="modified">
+					<changes>
+						<change type="modified" api="InternalPolicy" detail="Constructor modified to init zoho urlvalidator related properties and attribute limit from policy file directive" />
+						<change type="added" api="getAttributeLimit" detail="To get attribute limit from appropriate directive" />
+						<change type="added" api="isEnabledURLValidation" />
+						<change type="added" api="isIncludeCssSpace" detail="Cssparser format fix" />
+						<change type="added" api="isPreserveCssUrlQuotes" detail="Cssparser format fix" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html" name="Policy.java" type="modified">
+					<changes>
+						<change type="modified" api="Policy" detail="Constructor modified to init zoho urlvalidator related attributes and atKeyFrameCSSSelectors" />
+						<change type="added" api="getURLValidationProperties" detail="To get url validator properties" />
+						<change type="modified" api="getParseContext" detail="Loading order customized for common-regexps, common-attributes, css-rules and tag-rules" />
+						<change type="added" api="parseCommonRules" detail="To load common-regexps, common-attributes from the policy" />
+						<change type="modified" api="parsePolicy" detail="To load rules from the policy based on whether the common rules are loaded or not" />
+						<change type="added" api="isRemoveConfiguration" detail="The configuration remove=true to remove the existing configuration from the configuration storage" />
+						<change type="modified" api="parseDirectives" detail="parse based on remove configuration" />
+						<change type="added" api="parseRequiresAtKeyFrameCSSSelectors" detail="It contains whitelist of Unknown CSSRules mentioned under the tag require-unknown-css-rules" />
+						<change type="modified" api="parseGlobalAttributes" detail="parse based on remove configuration" />
+						<change type="modified" api="parseCommonRegExps" detail="parse based on remove configuration" />
+						<change type="modified" api="parseCommonAttributes" detail="parse based on remove configuration" />
+						<change type="modified" api="parseTagRules" detail="Add rel=noopener into anchor tag when target=_blank exists to prevent location spoofing via window.opener object" />
+						<change type="added" api="getMandatoryTagAttributes" detail="List of mandatory attributes" />
+						<change type="added" api="getInsertAttributes" detail="contains Attribute object for every insert-attribute node" />
+						<change type="modified" api="parseCSSRules" detail="parse based on remove configuration and category of the css property (common style, font style, media)" />
+						<change type="added" api="parseURLValidatorTag" detail="parsing url validation rules" />
+						<change type="added" api="getURLValidation_Attributes" />
+						<change type="added" api="getUrlValidator" />
+						<change type="added" api="getAtKeyFrameCSSSelectorsList" />
+						<change type="added" variable="INCLUDE_CSS_SPACE" detail="Cssparser format fix" />
+						<change type="added" variable="PRESERVE_CSS_URL_QUOTES" detail="Cssparser format fix" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.model" name="Attribute.java" type="modified">
+					<changes>
+						<change type="modified" api="Attribute" detail="Constructor modified to init insert attribute and criteria of insert attribute" />
+						<change type="added" api="getAllowedValues" detail="The list of allowed values associated with the attribute" />
+						<change type="added" api="getInsertValues" />
+						<change type="added" api="isCriteriaMatched" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.model" name="Property.java" type="modified">
+					<changes>
+						<change type="modified" api="Property" detail="Constructor modified to init category values" />
+						<change type="added" api="getCategoryValues" detail="A List of allowed category values (Ex. paged, atmedia, atfontface)" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.model" name="Tag.java" type="modified">
+					<changes>
+						<change type="modified" api="Tag" detail="Constructor modified to init mandatory and insert attributes" />
+						<change type="added" api="getMandatoryAttributes" detail="To get mandatory attributes associated with tag" />
+						<change type="added" api="getInsertAttributes" detail="To get insert attributes associated with tag" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.scan" name="AbstractAntiSamyScanner.java" type="modified">
+					<changes>
+						<change type="modified" api="getResourceBundle" detail="API scope modified to public" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.scan" name="ASHTMLSerializer" type="modified">
+					<changes>
+						<change type="modified" api="ASHTMLSerializer" detail="Constructor modified to init skipEscapeHtmlTags, encodeNonBreakingSpace and requireClosingTags" />
+						<change type="modified" api="getEntityRef" detail="To encode the NO-BREAK SPACE (\u00A0) character and to avoid html encoding for non HTML cases like 1 &lt; 2" />
+						<change type="modified" api="endElementIO" detail="To add closing tag for &lt;li&gt; which is stripped out when the directive useXHTML= false in antisamy policy file" />
+						<change type="added" api="requiresClosingTag" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.scan" name="ASXHTMLSerializer.java" type="modified">
+					<changes>
+						<change type="modified" api="ASXHTMLSerializer" detail="Constructor modified to init skipEscapeHtmlTags, encodeNonBreakingSpace and skipEscapeSingleQuote" />
+						<change type="modified" api="getEntityRef" detail="To encode the NO-BREAK SPACE (\u00A0) character and to avoid html encoding for non HTML cases like 1 &lt; 2 and encoding single quote character based on flag" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.scan" name="AntiSamyDOMScanner.java" type="modified">
+					<changes>
+						<change type="modified" api="processStyleTag" detail="ZohoCssScanner used instead of Batick CssScanner" />
+						<change type="modified" api="processAttributes" detail="
+						1. when mandatory attribute is enabled, antisamy checks the existence of mandatory attribute in tag. Otherwise, entire tag will be removed.
+						2. zoho urlvalidator is used to validate url attributes such as href" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.scan" name="AntiSamySAXScanner.java" type="modified">
+					<changes>
+						<change type="modified" variable="sTransformerFactory" detail="TransformerFactory com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl is hard-coded to avoid loading from different jar" />
+						<change type="modified" api="scan" detail="attribute limit from the directive 'attributeLimit' in policy file is set" />
+						<change type="modified" api="getParser" detail="SAXParser features match and no-change set" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.scan" name="Constants.java" type="modified">
+					<changes>
+						<change type="modified" variable="big5CharsToEncode" detail="included : in big5CharsToEncode" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.scan" name="MagicSAXFilter.java" type="modified">
+					<changes>
+						<change type="modified" api="reset" detail="zohoCssScanner and unClosedNoscriptAndNoembedTagsCount reset" />
+						<change type="modified" variable="conditionalDirectives" detail="Case sensitive check is added because IE conditional comments ([IF IE 8] or [if IE 8]) is case insensitive" />
+						<change type="modified" api="comment" detail="removed the COMMENT and CDATA section of &lt;noscript&gt; and &lt;noembed&gt; tag." />
+						<change type="modified" api="endElement" detail="ZohoCssScanner used" />
+						<change type="modified" api="startElement" detail="
+						1. Fix for style import hacks by adding case-insensitive check for style tag
+						2. Introduced mandatory attribute which when enabled, antisamy checks the existence of mandatory attribute in tag. Otherwise, entire tag will be removed.
+						3. Based on the browser behaviour, When same attribute repeats with different value in a tag, the first one is taken
+						4. zoho urlvalidator is used to validate url attributes such as href
+						5. Add rel=noopener into anchor tag when target=_blank exists to prevent location spoofing via window.opener object" />
+						<change type="added" api="isAttributeExists" detail="If the validattributes list contains attrName return true if else, return false." />
+						<change type="added" api="addInsertAttributes" detail="If target=_blank is present in anchor tag, rel=noopener noreferrer will be added in a tag to prevent location spoofing via opener object" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.util" name="ErrorMessageUtil.java" type="modified">
+					<changes>
+						<change type="added" variable="ERROR_" detail="ZOHO Css Validator Error Messages included" />
+					</changes>
+				</file>
+				<file package="resources" name="AntiSamy_en_US.properties" type="modified">
+					<changes>
+						<change type="added" variable="error.css." detail="ZOHO Css Validator Error Messages included" />
+					</changes>
+				</file>
+				<file package="resources" name="antisamy.xsd" type="modified">
+					<changes>
+						<change type="modified" detail="All ZOHO Custom attributes and tags included" />
+					</changes>
+				</file>
+			</filechanges>
+		</waf-version>
+		<waf-version id="2">
+			<since>M2_32_2</since>
+			<enhancements>
+				<enhancement>Directive preserveAttributeCase - To preserve attribute name casing of the html tags.</enhancement>
+			</enhancements>
+
+			<filechanges>
+				<file package="org.owasp.validator.html" name="InternalPolicy.java" type="modified">
+					<changes>
+						<change type="added" variable="preserveAttributeCase" detail="To preserve letter casing of the attributes" />
+						<change type="added" api="isPreserveAttributeCase" detail="To return the preserveAttributCase variables value"/>
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html" name="Policy.java" type="modified">
+					<changes>
+						<change type="added" variable="PRESERVE_ATTRIBUTE_CASE" detail="To preserve letter casing of the attributes" />
+					</changes>
+				</file>
+				<file package="org.owasp.validator.html.scan" name="AbstractAntiSamyScanner.java" type="modified">
+					<changes>
+						<change type="modified" api="getOutputFormat" detail="directive preserveAttributeCase is set to Xerces OutputFormat." />
+					</changes>
+				</file>
+			</filechanges>
+		</waf-version>
+
+		<waf-version id="3">
+			<since>M2_34</since>
+			<enhancements>
+				<enhancement>Antisamy Jar Upgrade - antisamy jar is upgraded from version 1.6.4 to 1.7.5</enhancement>
+			</enhancements>
+			<filechanges>
+				<file package="org.owasp.validator.html.scan" name="MagicSAXFilter.java" type="modified">
+					<changes>
+						<change type="modified" api="reset" detail="Fix by ZOHO in version-1.6.4 - [unClosedNoscriptAndNoembedTagsCount reset] is removed in 1.7.5 as it is handled by Antisamy itself" />
+						<change type="modified" api="comment" detail="Fix by ZOHO in version-1.6.4 - [removed the COMMENT and CDATA section of &lt;noscript&gt; and &lt;noembed&gt; tag] is removed in this version (1.7.5), as it is handled by Antisamy itself." />
+						<change type="modified" api="startElement" detail="Fix by ZOHO in version-1.6.4 - [Add rel=noopener into anchor tag when target=_blank exists to prevent location spoofing via window.opener object] is removed in this version (1.7.5), as it is handled by Antisamy itself." />
+					</changes>
+				</file>
+				<file package="resources" name="antisamy-common-rules.xml" type="modified">
+					<changes>
+						<change type="added" detail="Added new directives - nofollowAnchors, noopenerAndNoreferrerAnchors"/>
+						<change type="modified" detail="removed directive - useXHTML, since Antisamy has deprecated the use of XHTML from version antisamy-1.7.0"/>
+					</changes>
+				</file>
+			</filechanges>
+		</waf-version>
+	</waf-versions>
+	
+</root>

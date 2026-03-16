@@ -1,0 +1,10 @@
+Module=ZOHOLOGSERVER
+SourceCoLabel=ZOHOLOGSERVER_LOGAGENT_9.0
+BuildDate=Mar_02_2026
+BuildTime=10:35:03
+BuildLabel=ZOHOLOGSERVER_LOGAGENT_9.0_Mar_02_2026_1
+build-timestamp= 1772427927
+StaticVersion=
+Current_Build_Url=https://build.zohocorp.com/framework/zohologserver/webhost/ZOHOLOGSERVER_LOGAGENT_9.0/Mar_02_2026_1
+Source_Changeset=903852e593fb64f3021b207891e715a75ccb02a0
+Build_Comment=Jackson jars version upgrade.

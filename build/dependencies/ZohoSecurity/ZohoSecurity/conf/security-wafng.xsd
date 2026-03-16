@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id$ -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<xs:redefine schemaLocation="security.xsd">
+
+		<xs:complexType name="jsontemplatescomplextype">
+			<xs:complexContent>
+				<xs:restriction base="jsontemplatescomplextype">
+					<xs:choice maxOccurs="unbounded">
+						<xs:element ref="jsontemplate" />
+						<xs:element ref="key" />
+					</xs:choice>
+				</xs:restriction>
+			</xs:complexContent>
+		</xs:complexType>
+
+		<xs:complexType name="jsontemplatecomplextype">
+			<xs:complexContent>
+				<xs:restriction base="jsontemplatecomplextype">
+					<xs:choice minOccurs="0" maxOccurs="unbounded">
+						<xs:element ref="key" />
+						<xs:element ref="value"/>
+					</xs:choice>
+					<xs:attributeGroup ref="jsonTemplateGroup" />
+				</xs:restriction>
+			</xs:complexContent>
+		</xs:complexType>
+
+		<xs:attributeGroup name="jsonTemplateGroup">
+			<xs:attribute name="name" type="xs:string" />
+			<xs:attribute name="ignore-extrakey" type="xs:boolean" />
+		</xs:attributeGroup>
+
+		<xs:attributeGroup name="keyAttrGroup">
+			<xs:attribute name="name" type="xs:string" />
+			<xs:attribute name='index' type='xs:string' />
+			<xs:attribute name="max-len" type="xs:integer" />
+			<xs:attribute name="max-occurrences" type="xs:integer" />
+			<xs:attribute name="min-len" type="xs:integer" />
+			<xs:attribute name="min-occurrences" type="xs:integer" />
+			<xs:attribute name="name-regex" type="xs:boolean" />
+			<xs:attribute name="regex" />
+			<xs:attribute name="type">
+				<xs:simpleType>
+					<xs:restriction base="paramtypes">
+						<xs:pattern value="boolean|int|long|float|double|JSONObject|JSONArray|String" />
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="array-size" type="arraysizes" />
+			<xs:attribute name="template" type="xs:string" />
+			<xs:attribute name="allow-invalid" type="xs:boolean"/>
+			<xs:attribute name="secret" type="xs:boolean"/>
+			<xs:attribute name="description"/>
+			<xs:attribute name="trim" type="xs:boolean"/>
+
+		</xs:attributeGroup>
+
+	</xs:redefine>
+
+</xs:schema>

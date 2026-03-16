@@ -1,8 +1,0 @@
-     [echo] ./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-enums.jar,./NoteBook_build_stage/classes,com/zoho/notebook/enums/**,
-     [echo] Local build mickey lite pre check not needed.
-     [echo] ----------- NoteBook 1.0 2026 ------------
-     [echo] -----------total time 0.001 sec ------------
-     [echo] enums:jarcreation
-     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-enums.jar
-     [echo] fileincludes:-com/zoho/notebook/enums/**
-     [echo] fileexcludes:-

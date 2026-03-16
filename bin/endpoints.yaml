@@ -1,9 +1,0 @@
-endpoints:
-  auth_endpoints:
-    - "/login"
-    - "/signup"
-
-  public_endpoints:
-    - "/index.html"
-    - "/css/"
-    - "/js/"

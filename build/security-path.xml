@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<security xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="security.xsd">
+    <urls>
+        <url path="/favicon.ico" method="get" authentication="public"/>
+        <url path="/js/.*" path-regex="true" method="get" authentication="public"/>
+        <url path="/css/.*" path-regex="true" method="get" authentication="public"/>
+
+        <url path="/" method="get" authentication="public"/>
+        <url path="/index.html" method="get" authentication="public"/>
+        
+        <url path="/user/signup" method="get,post" authentication="public">
+            <param name="username" type="String" />
+            <param name="password" type="String" />
+        </url>
+        
+        <url path="/user/login" method="get,post" authentication="public">
+            <param name="username" type="String" />
+            <param name="password" type="String" />
+        </url>
+
+        <url path="/user/logout" method="get" authentication="required"/>
+        <url path="/user/profile" method="get" authentication="required"/>
+        <url path="/user/contacts" method="get" authentication="required"/>
+
+        <url path="/notebooks(/.*)?" path-regex="true" authentication="required" method="get,post,put,delete"/>
+    </urls>
+</security>

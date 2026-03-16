@@ -1,4 +1,0 @@
-     [echo] all:jarcreation
-     [echo] jarfile:-./NoteBook_build_stage/all_unused.jar
-     [echo] fileincludes:-**
-     [echo] fileexcludes:-

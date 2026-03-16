@@ -1,0 +1,79 @@
+<eventframework package="com.zoho.security.eventfw.pojos">
+	<!-- Monitoring Events: This type of event won't create POJO classes and which is directly used in com.zoho.security.wafad.WAFAttackDiscoveryEvent -->
+
+	<events severity="5" transfer-api="ZohoLogs">
+		<event name="path_traversal" data-template="path_traversal_dt" /> <!-- NOTE: This event called directly (i.e without POJO) in SecurityRequestWrapper.getReqeustDispatcher() -->
+		<event name="sql_injection" data-template="sql_injection_dt" />
+	</events>
+
+	<!-- Data Template Starts Here -->
+	<data-templates>
+		<builtin-fields impl="com.zoho.security.wafad.instrument.AttackDiscoveryBuiltInFieldsProvider">
+			<data-template name="ad_rq_log_id">
+				<field name="log_id" type="String" />
+			</data-template>
+			<data-template name="ad_rq_user_zuid">
+				<field name="user_zuid" type="String" />
+			</data-template>
+			<data-template name="ad_rq_remote_ip">
+				<field name="remote_ip" type="String" />
+			</data-template>
+			<data-template name="ad_rq_uri">
+				<field name="uri" type="String" />
+			</data-template>
+			<data-template name="ad_rq_method">
+				<field name="method" type="String" />
+			</data-template>
+			<data-template name="ad_ss_servlet_path">
+				<field name="ss_servlet_path" type="String" />
+			</data-template>
+			<data-template name="ad_ss_path_info">
+				<field name="ss_path_info" type="String" />
+			</data-template>
+			<data-template name="ad_wc_uri_prefix">
+				<field name="wc_uri_prefix" type="String" />
+			</data-template>
+			<data-template name="ad_wc_uri">
+				<field name="wc_uri" type="String" />
+			</data-template>
+			<data-template name="ad_wc_method">
+				<field name="wc_method" type="String" />
+			</data-template>
+			<data-template name="ad_wc_operation">
+				<field name="wc_operation" type="String" />
+			</data-template>
+		</builtin-fields>
+
+		<data-template name="monitoring_condition_dt">
+			<field name="monitoring_condition" type="String" />
+		</data-template>
+
+		<data-template name="monitoring_dt">
+			<field ref="ad_rq_uri" />
+			<field ref="ad_rq_method" />
+			<field ref="ad_ss_servlet_path" />
+			<field ref="ad_ss_path_info" />
+			<field ref="ad_wc_uri_prefix" />
+			<field ref="ad_wc_uri" />
+			<field ref="ad_wc_method" />
+			<field ref="ad_wc_operation" />
+			<field ref="ad_rq_log_id" />
+			<field ref="ad_rq_user_zuid" />
+			<field ref="ad_rq_remote_ip" />
+			<field ref="callee_info_dt" />
+			<field ref="monitoring_condition_dt" />
+		</data-template>
+
+		<data-template name="path_traversal_dt">
+			<field name="path_payload" type="String" />
+			<field ref="ss_dispatcher_type" />
+			<field ref="monitoring_dt" />
+		</data-template>
+
+		<data-template name="sql_injection_dt">
+			<field name="query" type="String" />
+			<field name="exception" type="String" />
+			<field ref="monitoring_dt" />
+		</data-template>
+	</data-templates>
+</eventframework>

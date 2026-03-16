@@ -1,5 +1,0 @@
-     [echo] util:jarcreation
-     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-util.jar
-     [echo] fileincludes:-com/zoho/notebook/util/**
-     [echo] fileexcludes:-
-      [jar] Building jar: /home/sri-24601/eclipse-workspace/NoteBook/build/NoteBook_build_stage/war_dir/WEB-INF/lib/nb-util.jar

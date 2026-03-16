@@ -1,4 +1,0 @@
-     [echo] context:jarcreation
-     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-context.jar
-     [echo] fileincludes:-com/zoho/notebook/context/**
-     [echo] fileexcludes:-

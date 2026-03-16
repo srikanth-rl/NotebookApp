@@ -1,6 +1,30 @@
+# --- Java & Compilation ---
+*.class
 bin/
-build/
+
+# --- Build Artifacts ---
+# Ignore the logs generated during 'ant' runs
+build/buildlogs/
+build/NoteBook_build_stage/
+build/all_unused.jar
+*.war
+*.zip
+
+# --- Runtime Logs ---
+# Ignore all server and application logs
 logs/
-.settings/
-.classpath
+*.log
+*.lck
+
+# --- IDE Metadata (Eclipse/VS Code) ---
 .project
+.classpath
+.settings/
+.cache/
+.history/
+*.tmp
+*.bak
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db

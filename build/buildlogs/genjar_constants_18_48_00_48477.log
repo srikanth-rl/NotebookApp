@@ -1,4 +1,0 @@
-     [echo] constants:jarcreation
-     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-constants.jar
-     [echo] fileincludes:-com/zoho/notebook/constants/**
-     [echo] fileexcludes:-

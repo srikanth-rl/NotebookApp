@@ -1,5 +1,0 @@
-     [echo] service:jarcreation
-     [echo] jarfile:-./NoteBook_build_stage/war_dir/WEB-INF/lib/nb-service.jar
-     [echo] fileincludes:-com/zoho/notebook/service/**
-     [echo] fileexcludes:-
-      [jar] Building jar: /home/sri-24601/eclipse-workspace/NoteBook/build/NoteBook_build_stage/war_dir/WEB-INF/lib/nb-service.jar

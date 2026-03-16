@@ -1,9 +1,0 @@
-     [echo] copy task param:-copy_log_jars
-     [echo] todir:-./NoteBook_build_stage/war_dir/WEB-INF/lib
-     [echo] srcdir:-../lib_logs/logsclient/logclient/lib
-     [echo] includes:-**/*.jar
-     [echo] excludes:-${copy_excludes_match} build/checks.xml
-     [echo] mapper type:-identity
-     [echo] mapper from:-${mapperfrom}
-     [echo] mapper to:-${mapperto}
-     [copy] Copying 8 files to /home/sri-24601/eclipse-workspace/NoteBook/build/NoteBook_build_stage/war_dir/WEB-INF/lib
