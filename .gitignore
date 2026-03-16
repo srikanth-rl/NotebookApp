@@ -27,4 +27,6 @@ logs/
 
 # --- OS Specific ---
 .DS_Store
-Thumbs.db
+Thumbs.dbbuild/
+dependencies/
+bin/
