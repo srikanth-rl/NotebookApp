@@ -14,6 +14,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
+import java.util.logging.Logger;
+/*
 import java.util.Map;
 import java.util.Set;
 
@@ -23,9 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Logger;
 
 public class AuthenticationFilter implements Filter {
 
@@ -156,5 +157,68 @@ public class AuthenticationFilter implements Filter {
         responseMap.put("message", "User session expired. Please login again.");
         FrequentlyUsedMethods.writeJson(resp, responseMap);
         return;
+    }
+}
+*/
+// security framework included
+public class AuthenticationFilter implements Filter {
+
+    private static final Logger LOGGER = Logger.getLogger(AuthenticationFilter.class.getName());
+    private UserSessionService sessionService;
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        this.sessionService = new UserSessionService();
+        LOGGER.info("AuthenticationFilter initialized. Path control offloaded to Security Framework.");
+    }
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletRequest req = (HttpServletRequest) request;
+        HttpServletResponse resp = (HttpServletResponse) response;
+        String requestURI = req.getRequestURI();
+
+        // Extract Session ID from cookie
+        String sessionId = FrequentlyUsedMethods.getSessionCookieValue(req);
+        UserModel sessionUser = null;
+
+        if (sessionId != null) {
+            try {
+                // Validate session against DB/Cache
+                sessionUser = sessionService.validateSessionAndGetUser(sessionId);
+            } catch (Exception e) {
+                LOGGER.severe("Session validation failed for URI: " + requestURI);
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                return;
+            }
+        }
+
+        // Set ThreadLocal Context if user is valid
+        if (sessionUser != null) {
+            try {
+                UserSessionContext.set(
+                    sessionUser.getId(),
+                    sessionUser.getDisplayName(),
+                    sessionUser.getTimeZone(),
+                    req.getRemoteAddr()
+                );
+                
+                // Continue to the next filter/servlet
+                chain.doFilter(request, response);
+            } finally {
+                // ALWAYS clear ThreadLocal to prevent memory leaks in Tomcat
+                UserSessionContext.remove();
+            }
+        } else {
+            // If the Security Framework let the request through but found no user,
+            // so the session is invalid or expired.
+            if (resp.isCommitted()) 
+            	return; 
+
+            // Only act if the response hasn't been handled by SecurityFilter
+            chain.doFilter(request, response);
+        }
     }
 }

@@ -7,7 +7,6 @@
 
     <display-name>Notebook</display-name>
     
-    
     <filter>
         <filter-name>AccessLogFilter</filter-name>
         <filter-class>com.zoho.logs.logclient.filter.AccessLogFilter</filter-class>
@@ -20,6 +19,24 @@
         <dispatcher>ERROR</dispatcher>
     </filter-mapping>
     
+    <filter>
+	    <filter-name>SecurityFilter</filter-name>
+	    <filter-class>com.adventnet.iam.security.SecurityFilter</filter-class>
+	    <init-param>
+		    <param-name>config-file</param-name>
+		    <param-value>conf/security-common.xml,conf/security-safeheaders.xml,conf/security-useragent.xml,conf/security-properties.xml,conf/security-path.xml</param-value>
+		</init-param>
+	    <init-param>
+	        <param-name>development.mode</param-name>
+	        <param-value>true</param-value>
+	    </init-param>
+	</filter>
+
+    <filter-mapping>
+        <filter-name>SecurityFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <filter>
         <filter-name>AuthenticationFilter</filter-name>
         <filter-class>com.zoho.notebook.filter.AuthenticationFilter</filter-class>
