@@ -30,3 +30,9 @@ logs/
 Thumbs.dbbuild/
 dependencies/
 bin/
+build/
+bin/
+logs/
+build/
+bin/
+logs/
