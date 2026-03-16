@@ -4,6 +4,7 @@ endpoints:
     - "/signup"
 
   public_endpoints:
+    - "/"
     - "/index.html"
     - "/css/"
     - "/js/"

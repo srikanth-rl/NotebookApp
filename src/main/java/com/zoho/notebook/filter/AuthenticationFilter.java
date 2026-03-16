@@ -14,9 +14,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
-import java.util.logging.Logger;
-/*
 import java.util.Map;
 import java.util.Set;
 
@@ -26,13 +23,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 
 public class AuthenticationFilter implements Filter {
 
     private static Set<String> AUTH_ENDPOINTS = new HashSet<>();
     private static Set<String> PUBLIC_ENDPOINTS = new HashSet<>();
-    private static final Logger LOGGER = Logger.getLogger(AuthenticationFilter.class.getName());
+    private final UserSessionService sessionService = new UserSessionService();
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -43,7 +41,6 @@ public class AuthenticationFilter implements Filter {
 	private void loadConfig() throws ServletException {
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("endpoints.yaml")) {
             if (input == null) {
-                LOGGER.severe("endpoints.yaml not found");
                 throw new FileNotFoundException("endpoints.yaml not found");
             }
 
@@ -56,10 +53,8 @@ public class AuthenticationFilter implements Filter {
             AUTH_ENDPOINTS = new HashSet<>(endpoints.getOrDefault("auth_endpoints", List.of()));
             PUBLIC_ENDPOINTS = new HashSet<>(endpoints.getOrDefault("public_endpoints", List.of()));
             
-            LOGGER.info("Endpoints loaded successfully");
-            System.out.println("\nEndpoints loaded successfully!\n");
+            System.out.println("Endpoints loaded successfully!");
         } catch (Exception e) {
-            LOGGER.severe("Failed to load endpoints from YAML: " + e.getMessage());
         	e.printStackTrace();
             throw new ServletException("Failed to load endpoints from YAML", e);
         }
@@ -73,11 +68,9 @@ public class AuthenticationFilter implements Filter {
         HttpServletResponse resp = (HttpServletResponse) response;
         
         String requestURI = req.getRequestURI();
-        LOGGER.info("Incoming request: " + requestURI);
-
+        
         // Allow public endpoints (CSS, JS, Index) to pass through immediately!
         if (PUBLIC_ENDPOINTS.stream().anyMatch(requestURI::contains)) {
-            LOGGER.info("Public endpoint accessed: " + requestURI);
             chain.doFilter(request, response);
             return;
         }
@@ -85,17 +78,13 @@ public class AuthenticationFilter implements Filter {
         // Extract Session ID from cookie if exists
         String sessionId = FrequentlyUsedMethods.getSessionCookieValue(req);
         UserModel sessionUser = null;
-        
+
         // If custom sessionId exists in cookie, validate it
         if (sessionId != null) {
             try {
-                LOGGER.info("Validating session for sessionId");
-
                 // Validate the user is eligible to use the session using DB/cache
-                UserSessionService sessionService = new UserSessionService();
                 sessionUser = sessionService.validateSessionAndGetUser(sessionId);
             } catch (Exception e) {
-                LOGGER.severe("Session validation failed: " + e.getMessage());
                 e.printStackTrace();
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 return;
@@ -108,12 +97,8 @@ public class AuthenticationFilter implements Filter {
 
         // If user has valid session no need to login again
         if (sessionUser != null) {
-            LOGGER.info("Valid session detected");
-
             // but if they try to access login/signup while already logged in
             if (isAuthPage) {
-                LOGGER.info("User already logged in attempted auth endpoint");
-
             	resp.setStatus(HttpServletResponse.SC_OK);
                 responseMap.put("status", "success");
                 responseMap.put("displayName", sessionUser.getDisplayName());
@@ -126,8 +111,6 @@ public class AuthenticationFilter implements Filter {
 
             // if any other page they want to access, allow them by setting their basic fields in a thread
             try {
-                LOGGER.info("Authenticated request allowed");
-
                 UserSessionContext.set(
                     sessionUser.getId(),
                     sessionUser.getDisplayName(),
@@ -139,7 +122,6 @@ public class AuthenticationFilter implements Filter {
             } finally {
             	// clear the details in the thread once the request is finished
                 UserSessionContext.remove();
-                LOGGER.info("User session context cleared");
             }
         }
 
@@ -150,75 +132,10 @@ public class AuthenticationFilter implements Filter {
         }
 
         // if any other page they want to access, without logged in, they are not authorized
-        LOGGER.warning("Unauthorized access attempt: " + requestURI);
-
         resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         responseMap.put("status", "error");
         responseMap.put("message", "User session expired. Please login again.");
         FrequentlyUsedMethods.writeJson(resp, responseMap);
         return;
-    }
-}
-*/
-// security framework included
-public class AuthenticationFilter implements Filter {
-
-    private static final Logger LOGGER = Logger.getLogger(AuthenticationFilter.class.getName());
-    private UserSessionService sessionService;
-
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        this.sessionService = new UserSessionService();
-        LOGGER.info("AuthenticationFilter initialized. Path control offloaded to Security Framework.");
-    }
-
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-
-        HttpServletRequest req = (HttpServletRequest) request;
-        HttpServletResponse resp = (HttpServletResponse) response;
-        String requestURI = req.getRequestURI();
-
-        // Extract Session ID from cookie
-        String sessionId = FrequentlyUsedMethods.getSessionCookieValue(req);
-        UserModel sessionUser = null;
-
-        if (sessionId != null) {
-            try {
-                // Validate session against DB/Cache
-                sessionUser = sessionService.validateSessionAndGetUser(sessionId);
-            } catch (Exception e) {
-            	LOGGER.log(java.util.logging.Level.SEVERE, "Session validation failed for URI: {0}", new Object[]{requestURI});
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                return;
-            }
-        }
-
-        // Set ThreadLocal Context if user is valid
-        if (sessionUser != null) {
-            try {
-                UserSessionContext.set(
-                    sessionUser.getId(),
-                    sessionUser.getDisplayName(),
-                    sessionUser.getTimeZone(),
-                    req.getRemoteAddr()
-                );
-                
-                // Continue to the next filter/servlet
-                chain.doFilter(request, response);
-            } finally {
-                // ALWAYS clear ThreadLocal to prevent memory leaks in Tomcat
-                UserSessionContext.remove();
-            }
-        } else {
-            // If the Security Framework let the request through but found no user,
-            // so the session is invalid or expired.
-            if (resp.isCommitted()) 
-            	return; 
-
-            // Only act if the response hasn't been handled by SecurityFilter
-            chain.doFilter(request, response);
-        }
     }
 }
