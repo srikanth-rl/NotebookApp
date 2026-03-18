@@ -67,7 +67,7 @@ public class CustomAuthenticationProvider extends ZSecAuthenticationProviderImpl
             try {
                 sessionUser = sessionService.validateSessionAndGetUser(sessionId);
             } catch (Exception e) {
-                LOGGER.severe("Session validation failed: " + e.getMessage());
+                LOGGER.severe("Session validation failed: " + e.getMessage()); // No I18N
                 return false; 
             }
         }
