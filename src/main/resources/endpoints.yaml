@@ -1,10 +1,11 @@
 endpoints:
   auth_endpoints:
-    - "/login"
-    - "/signup"
+    - "/user/login"
+    - "/user/signup"
 
   public_endpoints:
     - "/"
     - "/index.html"
+    - "/favicon.ico"
     - "/css/"
     - "/js/"

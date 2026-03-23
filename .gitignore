@@ -1,18 +1,21 @@
-# --- Java & Compilation ---
-*.class
-bin/
+# --- Selective Build Rules ---
+# Ignore all subdirectories inside build/ but keep top-level files
+build/*/
+notebook/build/*/
 
-# --- Build Artifacts ---
-# Ignore the logs generated during 'ant' runs
+# Specifically ignore these build artifacts
+build/all_unused.jar
 build/buildlogs/
 build/NoteBook_build_stage/
-build/all_unused.jar
 *.war
 *.zip
 
-# --- Runtime Logs ---
-# Ignore all server and application logs
+# --- Project Folders ---
+dependencies/
+bin/
 logs/
+
+# --- Runtime Logs ---
 *.log
 *.lck
 
@@ -27,12 +30,4 @@ logs/
 
 # --- OS Specific ---
 .DS_Store
-Thumbs.dbbuild/
-dependencies/
-bin/
-build/
-bin/
-logs/
-build/
-bin/
-logs/
+Thumbs.db

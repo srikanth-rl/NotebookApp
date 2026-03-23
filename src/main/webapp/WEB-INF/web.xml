@@ -6,7 +6,11 @@
          version="4.0">
 
     <display-name>Notebook</display-name>
-    
+
+    <listener>
+        <listener-class>com.zoho.sas.container.SASContextListener</listener-class>
+    </listener>
+
     <filter>
         <filter-name>AccessLogFilter</filter-name>
         <filter-class>com.zoho.logs.logclient.filter.AccessLogFilter</filter-class>
