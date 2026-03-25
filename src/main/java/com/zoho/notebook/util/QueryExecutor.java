@@ -40,7 +40,7 @@ public class QueryExecutor {
         String action = sql.trim().toUpperCase().startsWith(ActionType.DELETE.name()) ? ActionType.DELETE.name() : ActionType.UPDATE.name();
         String table = extractTableName(sql, action);
         
-        // If it's a session or audit table, just execute update and return
+        // If it's a session or audit table, just execute update and skip logging
         if (!isLoggableTable(table)) {
             try (PreparedStatement ps = con.prepareStatement(sql)) {
                 bindParams(ps, qg);
@@ -80,10 +80,10 @@ public class QueryExecutor {
             }
 
             AuditLogService.log(
-                con, 
-                userId, 
-                table, 
-                id, 
+//                con, 
+                userId,
+                table,
+                id,
                 action, 
                 oldData, 
                 newData, 

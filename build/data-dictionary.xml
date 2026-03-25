@@ -1,84 +1,84 @@
 <!DOCTYPE data-dictionary SYSTEM "data-dictionary.dtd">
 <data-dictionary name="NOTEBOOK_MICKEY">
 
-    <table name="user">
+    <table name="User">
         <columns>
-            <column name="id">
+            <column name="ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
                 <uniquevalue-generation>
-                    <generator-name>user.id</generator-name>
+                    <generator-name>User.ID</generator-name>
                 </uniquevalue-generation>
             </column>
-            <column name="display_name">
+            <column name="DISPLAY_NAME">
                 <data-type>CHAR</data-type>
                 <max-size>255</max-size>
                 <nullable>false</nullable>
             </column>
-            <column name="status">
+            <column name="STATUS">
                 <data-type>CHAR</data-type>
                 <max-size>50</max-size>
                 <default-value>PENDING</default-value>
             </column>
-            <column name="timezone">
+            <column name="TIMEZONE">
                 <data-type>CHAR</data-type>
                 <max-size>255</max-size>
                 <default-value>Asia/Kolkata</default-value>
             </column>
-            <column name="created_at">
+            <column name="CREATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="updated_at">
+            <column name="UPDATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
         </columns>
-        <primary-key name="user_pk">
-            <primary-key-column>id</primary-key-column>
+        <primary-key name="User_PK">
+            <primary-key-column>ID</primary-key-column>
         </primary-key>
     </table>
 
-    <table name="user_emails">
+    <table name="UserEmail">
         <columns>
-            <column name="id">
+            <column name="ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
                 <uniquevalue-generation>
-                    <generator-name>user_emails.id</generator-name>
+                    <generator-name>UserEmail.ID</generator-name>
                 </uniquevalue-generation>
             </column>
-            <column name="user_id">
+            <column name="USER_ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
             </column>
-            <column name="email">
+            <column name="EMAIL">
                 <data-type>CHAR</data-type>
                 <max-size>255</max-size>
                 <nullable>false</nullable>
             </column>
-            <column name="is_verified">
+            <column name="IS_VERIFIED">
                 <data-type>BOOLEAN</data-type>
                 <default-value>false</default-value>
             </column>
-            <column name="is_primary">
+            <column name="IS_PRIMARY">
                 <data-type>BOOLEAN</data-type>
                 <default-value>false</default-value>
             </column>
-            <column name="created_at">
+            <column name="CREATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="updated_at">
+            <column name="UPDATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
         </columns>
-        <primary-key name="user_emails_pk">
-            <primary-key-column>id</primary-key-column>
+        <primary-key name="UserEmail_PK">
+            <primary-key-column>ID</primary-key-column>
         </primary-key>
         <foreign-keys>
-            <foreign-key name="fk_email_user" reference-table-name="user">
+            <foreign-key name="UserEmail_User_FK" reference-table-name="User">
                 <fk-columns>
                     <fk-column>
-                        <fk-local-column>user_id</fk-local-column>
-                        <fk-reference-column>id</fk-reference-column>
+                        <fk-local-column>USER_ID</fk-local-column>
+                        <fk-reference-column>ID</fk-reference-column>
                     </fk-column>
                 </fk-columns>
                 <fk-constraints>ON-DELETE-CASCADE</fk-constraints>
@@ -86,33 +86,33 @@
         </foreign-keys>
     </table>
 
-    <table name="user_password">
+    <table name="UserPassword">
         <columns>
-            <column name="user_id">
+            <column name="USER_ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
             </column>
-            <column name="password_hash">
+            <column name="PASSWORD_HASH">
                 <data-type>CHAR</data-type>
                 <max-size>255</max-size>
                 <nullable>false</nullable>
             </column>
-            <column name="created_at">
+            <column name="CREATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="updated_at">
+            <column name="UPDATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
         </columns>
-        <primary-key name="user_password_pk">
-            <primary-key-column>user_id</primary-key-column>
+        <primary-key name="UserPassword_PK">
+            <primary-key-column>USER_ID</primary-key-column>
         </primary-key>
         <foreign-keys>
-            <foreign-key name="fk_password_user" reference-table-name="user">
+            <foreign-key name="UserPassword_User_FK" reference-table-name="User">
                 <fk-columns>
                     <fk-column>
-                        <fk-local-column>user_id</fk-local-column>
-                        <fk-reference-column>id</fk-reference-column>
+                        <fk-local-column>USER_ID</fk-local-column>
+                        <fk-reference-column>ID</fk-reference-column>
                     </fk-column>
                 </fk-columns>
                 <fk-constraints>ON-DELETE-CASCADE</fk-constraints>
@@ -120,48 +120,48 @@
         </foreign-keys>
     </table>
 
-    <table name="user_phones">
+    <table name="UserPhone">
         <columns>
-            <column name="id">
+            <column name="ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
                 <uniquevalue-generation>
-                    <generator-name>user_phones.id</generator-name>
+                    <generator-name>UserPhone.ID</generator-name>
                 </uniquevalue-generation>
             </column>
-            <column name="user_id">
+            <column name="USER_ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
             </column>
-            <column name="phone_number">
+            <column name="PHONE_NUMBER">
                 <data-type>CHAR</data-type>
                 <max-size>50</max-size>
                 <nullable>false</nullable>
             </column>
-            <column name="is_verified">
+            <column name="IS_VERIFIED">
                 <data-type>BOOLEAN</data-type>
                 <default-value>false</default-value>
             </column>
-            <column name="is_primary">
+            <column name="IS_PRIMARY">
                 <data-type>BOOLEAN</data-type>
                 <default-value>false</default-value>
             </column>
-            <column name="created_at">
+            <column name="CREATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="updated_at">
+            <column name="UPDATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
         </columns>
-        <primary-key name="user_phones_pk">
-            <primary-key-column>id</primary-key-column>
+        <primary-key name="UserPhone_PK">
+            <primary-key-column>ID</primary-key-column>
         </primary-key>
         <foreign-keys>
-            <foreign-key name="fk_phone_user" reference-table-name="user">
+            <foreign-key name="UserPhone_User_FK" reference-table-name="User">
                 <fk-columns>
                     <fk-column>
-                        <fk-local-column>user_id</fk-local-column>
-                        <fk-reference-column>id</fk-reference-column>
+                        <fk-local-column>USER_ID</fk-local-column>
+                        <fk-reference-column>ID</fk-reference-column>
                     </fk-column>
                 </fk-columns>
                 <fk-constraints>ON-DELETE-CASCADE</fk-constraints>
@@ -169,47 +169,48 @@
         </foreign-keys>
     </table>
 
-    <table name="user_sessions">
+    <table name="UserSession">
         <columns>
-            <column name="id">
+            <column name="ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
                 <uniquevalue-generation>
-                    <generator-name>user_sessions.id</generator-name>
+                    <generator-name>UserSession.ID</generator-name>
                 </uniquevalue-generation>
             </column>
-            <column name="session_id">
+            <column name="SESSION_ID">
                 <data-type>CHAR</data-type>
                 <max-size>255</max-size>
                 <nullable>false</nullable>
             </column>
-            <column name="user_id">
+            <column name="USER_ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
             </column>
-            <column name="ip_address">
+            <column name="IP_ADDRESS">
                 <data-type>CHAR</data-type>
                 <max-size>45</max-size>
             </column>
-            <column name="user_agent">
+            <column name="USER_AGENT">
                 <data-type>CHAR</data-type>
+                <max-size>50</max-size>
             </column>
-            <column name="created_at">
+            <column name="CREATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="expires_at">
+            <column name="EXPIRES_AT">
                 <data-type>BIGINT</data-type>
             </column>
         </columns>
-        <primary-key name="user_sessions_pk">
-            <primary-key-column>id</primary-key-column>
+        <primary-key name="UserSession_PK">
+            <primary-key-column>ID</primary-key-column>
         </primary-key>
         <foreign-keys>
-            <foreign-key name="fk_user_session_user" reference-table-name="user">
+            <foreign-key name="UserSession_User_FK" reference-table-name="User">
                 <fk-columns>
                     <fk-column>
-                        <fk-local-column>user_id</fk-local-column>
-                        <fk-reference-column>id</fk-reference-column>
+                        <fk-local-column>USER_ID</fk-local-column>
+                        <fk-reference-column>ID</fk-reference-column>
                     </fk-column>
                 </fk-columns>
                 <fk-constraints>ON-DELETE-CASCADE</fk-constraints>
@@ -217,59 +218,59 @@
         </foreign-keys>
     </table>
 
-    <table name="notebooks">
+    <table name="Notebook">
         <columns>
-            <column name="id">
+            <column name="ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
                 <uniquevalue-generation>
-                    <generator-name>notebooks.id</generator-name>
+                    <generator-name>Notebook.ID</generator-name>
                 </uniquevalue-generation>
             </column>
-            <column name="title">
+            <column name="TITLE">
                 <data-type>CHAR</data-type>
                 <max-size>255</max-size>
             </column>
-            <column name="owner_type">
+            <column name="OWNER_TYPE">
                 <data-type>CHAR</data-type>
                 <max-size>50</max-size>
                 <nullable>false</nullable>
             </column>
-            <column name="owner_id">
+            <column name="OWNER_ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
             </column>
-            <column name="created_by">
+            <column name="CREATED_BY">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="updated_by">
+            <column name="UPDATED_BY">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="created_at">
+            <column name="CREATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="updated_at">
+            <column name="UPDATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
         </columns>
-        <primary-key name="notebooks_pk">
-            <primary-key-column>id</primary-key-column>
+        <primary-key name="Notebook_PK">
+            <primary-key-column>ID</primary-key-column>
         </primary-key>
         <foreign-keys>
-            <foreign-key name="fk_notebook_created_by" reference-table-name="user">
+            <foreign-key name="Notebook_CreatedBy_FK" reference-table-name="User">
                 <fk-columns>
                     <fk-column>
-                        <fk-local-column>created_by</fk-local-column>
-                        <fk-reference-column>id</fk-reference-column>
+                        <fk-local-column>CREATED_BY</fk-local-column>
+                        <fk-reference-column>ID</fk-reference-column>
                     </fk-column>
                 </fk-columns>
                 <fk-constraints>ON-DELETE-SET-NULL</fk-constraints>
             </foreign-key>
-            <foreign-key name="fk_notebook_updated_by" reference-table-name="user">
+            <foreign-key name="Notebook_UpdatedBy_FK" reference-table-name="User">
                 <fk-columns>
                     <fk-column>
-                        <fk-local-column>updated_by</fk-local-column>
-                        <fk-reference-column>id</fk-reference-column>
+                        <fk-local-column>UPDATED_BY</fk-local-column>
+                        <fk-reference-column>ID</fk-reference-column>
                     </fk-column>
                 </fk-columns>
                 <fk-constraints>ON-DELETE-SET-NULL</fk-constraints>
@@ -277,61 +278,61 @@
         </foreign-keys>
     </table>
 
-    <table name="notes">
+    <table name="Note">
         <columns>
-            <column name="id">
+            <column name="ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
                 <uniquevalue-generation>
-                    <generator-name>notes.id</generator-name>
+                    <generator-name>Note.ID</generator-name>
                 </uniquevalue-generation>
             </column>
-            <column name="notebook_id">
+            <column name="NOTEBOOK_ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
             </column>
-            <column name="title">
+            <column name="TITLE">
                 <data-type>CHAR</data-type>
                 <max-size>255</max-size>
             </column>
-            <column name="content">
+            <column name="CONTENT">
                 <data-type>CHAR</data-type>
             </column>
-            <column name="is_pinned">
+            <column name="IS_PINNED">
                 <data-type>BOOLEAN</data-type>
                 <default-value>false</default-value>
             </column>
-            <column name="created_by">
+            <column name="CREATED_BY">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="updated_by">
+            <column name="UPDATED_BY">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="created_at">
+            <column name="CREATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="updated_at">
+            <column name="UPDATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
         </columns>
-        <primary-key name="notes_pk">
-            <primary-key-column>id</primary-key-column>
+        <primary-key name="Note_PK">
+            <primary-key-column>ID</primary-key-column>
         </primary-key>
         <foreign-keys>
-            <foreign-key name="fk_note_notebook" reference-table-name="notebooks">
+            <foreign-key name="Note_Notebook_FK" reference-table-name="Notebook">
                 <fk-columns>
                     <fk-column>
-                        <fk-local-column>notebook_id</fk-local-column>
-                        <fk-reference-column>id</fk-reference-column>
+                        <fk-local-column>NOTEBOOK_ID</fk-local-column>
+                        <fk-reference-column>ID</fk-reference-column>
                     </fk-column>
                 </fk-columns>
                 <fk-constraints>ON-DELETE-CASCADE</fk-constraints>
             </foreign-key>
-            <foreign-key name="fk_note_created_by" reference-table-name="user">
+            <foreign-key name="Note_CreatedBy_FK" reference-table-name="User">
                 <fk-columns>
                     <fk-column>
-                        <fk-local-column>created_by</fk-local-column>
-                        <fk-reference-column>id</fk-reference-column>
+                        <fk-local-column>CREATED_BY</fk-local-column>
+                        <fk-reference-column>ID</fk-reference-column>
                     </fk-column>
                 </fk-columns>
                 <fk-constraints>ON-DELETE-SET-NULL</fk-constraints>
@@ -339,97 +340,97 @@
         </foreign-keys>
     </table>
 
-    <table name="audit_logs">
+    <table name="AuditLog">
         <columns>
-            <column name="id">
+            <column name="ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
                 <uniquevalue-generation>
-                    <generator-name>audit_logs.id</generator-name>
+                    <generator-name>AuditLog.ID</generator-name>
                 </uniquevalue-generation>
             </column>
-            <column name="user_id">
+            <column name="USER_ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
             </column>
-            <column name="target_table">
+            <column name="TARGET_TABLE">
                 <data-type>CHAR</data-type>
                 <max-size>100</max-size>
                 <nullable>false</nullable>
             </column>
-            <column name="target_id">
+            <column name="TARGET_ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
             </column>
-            <column name="action">
+            <column name="ACTION">
                 <data-type>CHAR</data-type>
                 <max-size>50</max-size>
                 <nullable>false</nullable>
             </column>
-            <column name="old_data">
+            <column name="OLD_DATA">
                 <data-type>CHAR</data-type>
             </column>
-            <column name="new_data">
+            <column name="NEW_DATA">
                 <data-type>CHAR</data-type>
             </column>
-            <column name="ip_address">
+            <column name="IP_ADDRESS">
                 <data-type>CHAR</data-type>
                 <max-size>100</max-size>
             </column>
-            <column name="created_at">
+            <column name="CREATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
         </columns>
-        <primary-key name="audit_logs_pk">
-            <primary-key-column>id</primary-key-column>
+        <primary-key name="AuditLog_PK">
+            <primary-key-column>ID</primary-key-column>
         </primary-key>
         <foreign-keys>
-            <foreign-key name="fk_audit_user" reference-table-name="user">
+            <foreign-key name="AuditLog_User_FK" reference-table-name="User">
                 <fk-columns>
                     <fk-column>
-                        <fk-local-column>user_id</fk-local-column>
-                        <fk-reference-column>id</fk-reference-column>
+                        <fk-local-column>USER_ID</fk-local-column>
+                        <fk-reference-column>ID</fk-reference-column>
                     </fk-column>
                 </fk-columns>
             </foreign-key>
         </foreign-keys>
     </table>
 
-    <table name="system_configs">
+    <table name="SystemConfig">
         <columns>
-            <column name="id">
+            <column name="ID">
                 <data-type>BIGINT</data-type>
                 <nullable>false</nullable>
                 <uniquevalue-generation>
-                    <generator-name>system_configs.id</generator-name>
+                    <generator-name>SystemConfig.ID</generator-name>
                 </uniquevalue-generation>
             </column>
-            <column name="config_key">
+            <column name="CONFIG_KEY">
                 <data-type>CHAR</data-type>
                 <max-size>255</max-size>
                 <nullable>false</nullable>
             </column>
-            <column name="config_value">
+            <column name="CONFIG_VALUE">
                 <data-type>CHAR</data-type>
             </column>
-            <column name="config_type">
+            <column name="CONFIG_TYPE">
                 <data-type>CHAR</data-type>
                 <max-size>50</max-size>
                 <default-value>STRING</default-value>
             </column>
-            <column name="description">
+            <column name="DESCRIPTION">
                 <data-type>CHAR</data-type>
                 <max-size>500</max-size>
             </column>
-            <column name="created_at">
+            <column name="CREATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
-            <column name="updated_at">
+            <column name="UPDATED_AT">
                 <data-type>BIGINT</data-type>
             </column>
         </columns>
-        <primary-key name="system_configs_pk">
-            <primary-key-column>id</primary-key-column>
+        <primary-key name="SystemConfig_PK">
+            <primary-key-column>ID</primary-key-column>
         </primary-key>
     </table>
 

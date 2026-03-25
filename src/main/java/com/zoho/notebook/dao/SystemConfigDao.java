@@ -1,34 +1,40 @@
 package com.zoho.notebook.dao;
 
-import com.zoho.notebook.model.SystemConfigModel;
+import com.adventnet.ds.query.Column;
+import com.adventnet.ds.query.Criteria;
+import com.adventnet.ds.query.QueryConstants;
+import com.adventnet.ds.query.SelectQueryImpl;
+import com.adventnet.ds.query.Table;
+import com.adventnet.ds.query.DataSet;
+import com.adventnet.db.api.RelationalAPI;
+
 import com.zoho.notebook.enums.TableName;
-import com.zoho.notebook.util.Condition;
-import com.zoho.notebook.util.QueryExecutor;
-import com.zoho.notebook.util.QueryGenerator;
+import com.zoho.notebook.model.SystemConfigModel;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.util.List;
 
 public class SystemConfigDao {
 
-    public SystemConfigModel getConfigByKey(Connection con, String key) throws Exception {
-        QueryGenerator q = new QueryGenerator();
-        
-        q.select("config_key, config_value, config_type");
-        q.from(TableName.system_configs.name());
-        q.where(List.of(new Condition("config_key", "=", key)), "AND");
+    public SystemConfigModel getConfigByKey(String key) throws Exception {
+        SelectQueryImpl q = new SelectQueryImpl(new Table(TableName.SystemConfig.name()));
+        q.addSelectColumn(new Column(TableName.SystemConfig.name(), "CONFIG_KEY"));
+        q.addSelectColumn(new Column(TableName.SystemConfig.name(), "CONFIG_VALUE"));
+        q.addSelectColumn(new Column(TableName.SystemConfig.name(), "CONFIG_TYPE"));
+        q.setCriteria(new Criteria(new Column(TableName.SystemConfig.name(), "CONFIG_KEY"), key, QueryConstants.EQUAL));
 
-        try (ResultSet rs = QueryExecutor.executeQuery(con, q)) {
-            if (rs.next()) {
+        RelationalAPI api = RelationalAPI.getInstance();
+        Connection conn = api.getConnection();
+        try (DataSet ds = api.executeQuery(q, conn)) {
+            if (ds.next()) {
                 SystemConfigModel config = new SystemConfigModel();
-                config.setConfigKey(rs.getString("config_key"));
-                config.setConfigValue(rs.getString("config_value"));
-                config.setConfigType(rs.getString("config_type"));
+                config.setConfigKey((String) ds.getValue("CONFIG_KEY"));
+                config.setConfigValue((String) ds.getValue("CONFIG_VALUE"));
+                config.setConfigType((String) ds.getValue("CONFIG_TYPE"));
                 return config;
             }
+        } finally {
+            conn.close();
         }
-
         return null;
     }
 }

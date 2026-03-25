@@ -1,81 +1,89 @@
 package com.zoho.notebook.dao;
 
+import com.adventnet.ds.query.Column;
+import com.adventnet.ds.query.Criteria;
+import com.adventnet.ds.query.Join;
+import com.adventnet.ds.query.QueryConstants;
+import com.adventnet.ds.query.SelectQueryImpl;
+import com.adventnet.ds.query.Table;
+import com.adventnet.ds.query.UpdateQueryImpl;
+import com.adventnet.ds.query.DataSet;
+import com.adventnet.db.api.RelationalAPI;
+import com.adventnet.persistence.DataAccess;
+import com.adventnet.persistence.DataObject;
+import com.adventnet.persistence.Row;
+import com.adventnet.persistence.WritableDataObject;
+
+import com.zoho.notebook.enums.TableName;
 import com.zoho.notebook.model.UserModel;
 import com.zoho.notebook.model.UserSessionModel;
-import com.zoho.notebook.enums.TableName;
-import com.zoho.notebook.util.Condition;
-import com.zoho.notebook.util.QueryExecutor;
-import com.zoho.notebook.util.QueryGenerator;
 
-import java.util.List;
 import java.sql.Connection;
-import java.sql.ResultSet;
 
 public class UserSessionDao {
 
-    public boolean insertSessionInDb(Connection con, UserSessionModel sessionData) throws Exception {
-	    QueryGenerator q = new QueryGenerator();
-	    long newExpiry = System.currentTimeMillis() + (sessionData.getExpiresAt() * 60L * 1000L); // mins to milli seconds
-	    
-	    q.insertInto(TableName.user_sessions.name(), "session_id, user_id, ip_address, user_agent, expires_at, created_at");
-	    q.values(6);
-	    q.addParam(sessionData.getSessionId());
-	    q.addParam(sessionData.getUserId());
-	    q.addParam(sessionData.getIpAddress());
-	    q.addParam(sessionData.getUserAgent());
-	    q.addParam(newExpiry);
-	    q.addParam(sessionData.getCreatedAt()); 
-	    
-	    return QueryExecutor.executeInsert(con, q) > 0;
+    public boolean insertSessionInDb(UserSessionModel sessionData) throws Exception {
+	    long newExpiry = System.currentTimeMillis() + (sessionData.getExpiresAt() * 60L * 1000L);
+	
+	    String userAgent = sessionData.getUserAgent();
+	    if (userAgent != null && userAgent.length() > 50)
+	        userAgent = userAgent.substring(0, 50);
+	
+	    Row r = new Row(TableName.UserSession.name());
+	    r.set("SESSION_ID", sessionData.getSessionId());
+	    r.set("USER_ID",    sessionData.getUserId());
+	    r.set("IP_ADDRESS", sessionData.getIpAddress());
+	    r.set("USER_AGENT", userAgent);
+	    r.set("EXPIRES_AT", newExpiry);
+	    r.set("CREATED_AT", sessionData.getCreatedAt());
+	
+	    DataObject d = new WritableDataObject();
+	    d.addRow(r);
+	    DataAccess.add(d);
+	    return d.getRow(TableName.UserSession.name()) != null;
 	}
-    
-    public boolean updateExpiryTimeInDb(Connection con, String sessionId, int timeoutMins) throws Exception {
-        QueryGenerator q = new QueryGenerator();
+
+    public boolean updateExpiryTimeInDb(String sessionId, int timeoutMins) throws Exception {
         long newExpiry = System.currentTimeMillis() + (timeoutMins * 60L * 1000L);
 
-        q.update(TableName.user_sessions.name());
-        q.set(
-        		List.of("expires_at"), 
-        		List.of(newExpiry)
-        	);
-        q.where(List.of(
-        		new Condition("session_id", "=", sessionId)
-        	), "AND");
-
-        return QueryExecutor.executeUpdate(con, q) > 0;
+        UpdateQueryImpl q = new UpdateQueryImpl(TableName.UserSession.name());
+        q.setUpdateColumn("EXPIRES_AT", newExpiry);
+        q.setCriteria(new Criteria(new Column(TableName.UserSession.name(), "SESSION_ID"), sessionId, QueryConstants.EQUAL));
+        DataAccess.update(q);
+        return true;
     }
-    
-    public UserModel validateSessionAndGetUserFromDb(Connection con, String sessionId) throws Exception {
-        QueryGenerator q = new QueryGenerator();
-        long now = System.currentTimeMillis();
-        
-        q.select("u.id, u.display_name, u.timezone");
-        q.from(TableName.user.name() +" u");
-        q.join(TableName.user_sessions.name() + " s", "u.id = s.user_id");
-        q.where(List.of(
-            new Condition("s.session_id", "=", sessionId),
-            new Condition("s.expires_at", ">", now)
-        ), "AND");
 
-        try (ResultSet rs = QueryExecutor.executeQuery(con, q)) {
-            if (rs.next()) {
+    public UserModel validateSessionAndGetUserFromDb(String sessionId) throws Exception {
+        long now = System.currentTimeMillis();
+
+        SelectQueryImpl q = new SelectQueryImpl(new Table(TableName.User.name(), "u"));
+        q.addSelectColumn(new Column("u", "ID"));
+        q.addSelectColumn(new Column("u", "DISPLAY_NAME"));
+        q.addSelectColumn(new Column("u", "TIMEZONE"));
+        q.addJoin(new Join(TableName.User.name(), TableName.UserSession.name(), new String[]{"ID"}, new String[]{"USER_ID"}, "u", "s", Join.INNER_JOIN));
+        Criteria c = new Criteria(new Column("s", "SESSION_ID"), sessionId, QueryConstants.EQUAL);
+        c = c.and(new Criteria(new Column("s", "EXPIRES_AT"),    now,       QueryConstants.GREATER_THAN));
+        q.setCriteria(c);
+
+        RelationalAPI api = RelationalAPI.getInstance();
+        Connection conn = api.getConnection();
+        try (DataSet ds = api.executeQuery(q, conn)) {
+            if (ds.next()) {
                 UserModel user = new UserModel();
-                user.setId(rs.getLong("id"));
-                user.setDisplayName(rs.getString("display_name"));
-                user.setTimeZone(rs.getString("timezone"));
+                user.setId(((Number) ds.getValue("ID")).longValue());
+                user.setDisplayName((String) ds.getValue("DISPLAY_NAME"));
+                user.setTimeZone((String) ds.getValue("TIMEZONE"));
                 return user;
             }
+        } finally {
+            conn.close();
         }
         return null;
     }
 
-    public boolean deleteSessionFromDb(Connection con, String sessionId) throws Exception {
-    	QueryGenerator q = new QueryGenerator();
-
-    	q.delete(TableName.user_sessions.name());
-    	q.where(List.of(new Condition("session_id", "=", sessionId)), "AND");
-
-    	int rows = QueryExecutor.executeUpdate(con, q);
-    	return rows > 0;
+    public boolean deleteSessionFromDb(String sessionId) throws Exception {
+        Criteria c = new Criteria(new Column(TableName.UserSession.name(), "SESSION_ID"), sessionId, QueryConstants.EQUAL);
+        DataAccess.delete(c);
+        return true;
     }
 }

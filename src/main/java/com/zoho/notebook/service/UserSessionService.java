@@ -1,6 +1,8 @@
 package com.zoho.notebook.service;
 
-import com.zoho.notebook.util.DBConnection;
+import com.adventnet.persistence.DataAccess;
+import javax.transaction.TransactionManager;
+
 import com.zoho.notebook.dao.UserSessionDao;
 import com.zoho.notebook.model.UserModel;
 import com.zoho.notebook.model.UserSessionModel;
@@ -9,62 +11,56 @@ import com.zoho.notebook.cache.SessionCacheStrategy;
 import com.zoho.notebook.constants.SystemConfigConstants;
 
 import java.util.UUID;
-import java.sql.Connection;
 import java.util.logging.Logger;
 
 public class UserSessionService {
 
-    private final UserSessionDao sessionDao = new UserSessionDao();
+    private final UserSessionDao  sessionDao     = new UserSessionDao();
     private final SystemConfigService configService = new SystemConfigService();
     private static final SessionCacheStrategy sessionCache = CacheFactory.getSessionCache();
     private static final Logger LOGGER = Logger.getLogger(UserSessionService.class.getName());
 
     public UserSessionModel createSession(UserSessionModel sessionData, UserModel userData) throws Exception {
-        Connection con = null;
+        TransactionManager txMgr = DataAccess.getTransactionManager();
         boolean created = false;
         String sessionId = UUID.randomUUID().toString();
         long now = System.currentTimeMillis();
 
         try {
-            con = DBConnection.getConnection();
-            con.setAutoCommit(false);
+            txMgr.begin();
 
             int timeoutMins = (int) configService.getInt(
                     SystemConfigConstants.SESSION_TIMEOUT_MINUTES_K,
                     SystemConfigConstants.DEFAULT_SESSION_TIMEOUT_V
             );
-            
+
             // Set userData in sessionModel to store in DB
             sessionData.setUserId(userData.getId());
             sessionData.setSessionId(sessionId);
             sessionData.setCreatedAt(now);
             sessionData.setExpiresAt(timeoutMins);
 
-            created = sessionDao.insertSessionInDb(con, sessionData); // put sessionData entry in DB
+            created = sessionDao.insertSessionInDb(sessionData); // put sessionData entry in DB
 
             if (created) {
-                con.commit();
+                txMgr.commit();
                 sessionCache.put(sessionId, userData); // put the created session with user model in cache
                 LOGGER.info("Session created successfully. userId=" + userData.getId());
                 return sessionData;
             } else {
-                con.rollback();
+                txMgr.rollback();
                 return null;
             }
 
         } catch (Exception e) {
             LOGGER.severe("Session creation failed: " + e.getMessage());
-            if (con != null) 
-                con.rollback();
+            txMgr.rollback();
             throw e;
-        } finally {
-            if (con != null) 
-                con.close();
         }
     }
 
     public UserModel getSessionUser(String sessionId) {
-        if (sessionId == null || sessionId.isEmpty()) 
+        if (sessionId == null || sessionId.isEmpty())
             return null;
         return sessionCache.get(sessionId);
     }
@@ -77,9 +73,9 @@ public class UserSessionService {
     }
 
     public UserModel validateSessionAndGetUser(String sessionId) throws Exception {
-        Connection con = null;
+        TransactionManager txMgr = DataAccess.getTransactionManager();
         UserModel user = null;
-        
+
         try {
             // get generic configured cache
             user = sessionCache.get(sessionId);
@@ -87,15 +83,15 @@ public class UserSessionService {
             LOGGER.severe("Session cache read failed: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         // if any error occurs in cache, continue the main execution using DB approach
         try {
-            con = DBConnection.getConnection();
-            con.setAutoCommit(false);
+            txMgr.begin();
 
             if (user == null) {
-                user = sessionDao.validateSessionAndGetUserFromDb(con, sessionId);
+                user = sessionDao.validateSessionAndGetUserFromDb(sessionId);
                 if (user == null) {
+                    txMgr.rollback();
                     return null;
                 }
             }
@@ -105,23 +101,21 @@ public class UserSessionService {
                     SystemConfigConstants.DEFAULT_SESSION_TIMEOUT_V
             );
 
-            boolean updated = sessionDao.updateExpiryTimeInDb(con, sessionId, timeoutMins);
+            boolean updated = sessionDao.updateExpiryTimeInDb(sessionId, timeoutMins);
 
             if (updated) {
-                con.commit();
+                txMgr.commit();
                 sessionCache.put(sessionId, user);
             } else {
-                con.rollback();
+                txMgr.rollback();
                 sessionCache.remove(sessionId);
                 user = null;
             }
 
         } catch (Exception e) {
             LOGGER.severe("Session validation failed: " + e.getMessage());
-            if (con != null) con.rollback();
+            txMgr.rollback();
             throw e;
-        } finally {
-            if (con != null) con.close();
         }
 
         return user;
@@ -131,31 +125,26 @@ public class UserSessionService {
         if (sessionId == null || sessionId.isEmpty())
             return false;
 
-        Connection con = null;
+        TransactionManager txMgr = DataAccess.getTransactionManager();
         boolean deleted = false;
 
         try {
-            con = DBConnection.getConnection();
-            con.setAutoCommit(false);
+            txMgr.begin();
 
-            deleted = sessionDao.deleteSessionFromDb(con, sessionId);
+            deleted = sessionDao.deleteSessionFromDb(sessionId);
 
             if (deleted) {
-                con.commit();
+                txMgr.commit();
                 sessionCache.remove(sessionId);
                 LOGGER.info("Session deleted successfully.");
             } else {
-                con.rollback();
+                txMgr.rollback();
             }
 
         } catch (Exception e) {
             LOGGER.severe("Session deletion failed: " + e.getMessage());
-            if (con != null) 
-                con.rollback();
+            txMgr.rollback();
             throw e;
-        } finally {
-            if (con != null) 
-                con.close();
         }
 
         return deleted;

@@ -1,25 +1,27 @@
 package com.zoho.notebook.dao;
 
-import com.zoho.notebook.enums.TableName;
-import com.zoho.notebook.util.QueryExecutor;
-import com.zoho.notebook.util.QueryGenerator;
+import com.adventnet.persistence.DataAccess;
+import com.adventnet.persistence.DataObject;
+import com.adventnet.persistence.Row;
+import com.adventnet.persistence.WritableDataObject;
 
-import java.sql.Connection;
+import com.zoho.notebook.enums.TableName;
 
 public class UserPasswordDao {
 
-    public boolean insert(Connection con, long userId, String pwd) throws Exception {
-    	QueryGenerator q = new QueryGenerator();
-    	long now = System.currentTimeMillis();
-    	
-        q.insertInto(TableName.user_password.name(), "user_id, password_hash, created_at, updated_at");
-        q.values(4);
-        q.addParam(userId);
-        q.addParam(pwd);
-        q.addParam(now);
-        q.addParam(now);
-        
-        int rows = QueryExecutor.executeUpdate(con, q);        
-        return rows > 0;
+    public boolean insert(long userId, String pwd) throws Exception {
+        long now = System.currentTimeMillis();
+
+        Row r = new Row(TableName.UserPassword.name());
+        r.set("USER_ID",       userId);
+        r.set("PASSWORD_HASH", pwd);
+        r.set("CREATED_AT",    now);
+        r.set("UPDATED_AT",    now);
+        // USER_ID is the PK — mirrors User.ID, no sequence generator
+
+        DataObject d = new WritableDataObject();
+        d.addRow(r);
+        DataAccess.add(d);
+        return d.getRow(TableName.UserPassword.name()) != null;
     }
 }
