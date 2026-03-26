@@ -25,7 +25,7 @@
         <url path="/user/profile" method="get,put" authentication="required"/>
         <url path="/user/contacts" method="get,post,put,delete" authentication="required"/>
 
-        <!-- Notebooks endpoints — session required -->
-        <url path="/notebooks(/.*)?" path-regex="true" method="get,post,put,delete" authentication="required"/>
+		<url path="/notebooks/(\d+)/notes(/.*)?" path-regex="true" method="get,post,put,delete" authentication="required"/>
+		<url path="/notebooks(/.*)?" path-regex="true" method="get,post,put,delete" authentication="required"/>
     </urls>
 </security>

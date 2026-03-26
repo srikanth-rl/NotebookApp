@@ -70,7 +70,7 @@ public class UserPhoneDao {
                     phone.setPhoneNumber(dbPhone);
                     phone.setCountryCode(null);
                 }
-                phone.setPrimary(((Number) ds.getValue("IS_PRIMARY")).intValue() == 1);
+                phone.setPrimary((Boolean) ds.getValue("IS_PRIMARY"));
                 phone.setCreatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimeZone));
                 phone.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimeZone));
                 phones.add(phone);

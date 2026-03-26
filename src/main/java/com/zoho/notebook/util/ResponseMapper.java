@@ -6,10 +6,12 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 
 import com.zoho.notebook.model.UserModel;
+import com.zoho.notebook.model.NoteModel;
 import com.zoho.notebook.model.NotebookModel;
 import com.zoho.notebook.model.UserEmailModel;
 import com.zoho.notebook.model.UserPhoneModel;
 import com.zoho.notebook.dto.response.UserDtoResponse;
+import com.zoho.notebook.dto.response.NoteDtoResponse;
 import com.zoho.notebook.dto.response.NotebookDtoResponse;
 import com.zoho.notebook.dto.response.UserDtoResponse.ContactDetail;
 
@@ -112,6 +114,32 @@ public class ResponseMapper {
             list.add(singleNotebookResponse);
         }
 
+        return list;
+    }
+    
+    public static NoteDtoResponse toNoteResponse(NoteModel note) {
+        if (note == null)
+            return null;
+
+        NoteDtoResponse response = new NoteDtoResponse();
+        response.setId(note.getId());
+        response.setNotebookId(note.getNotebookId());
+        response.setTitle(note.getTitle());
+        response.setContent(note.getContent());
+        response.setPinned(note.isPinned());
+        response.setCreatedAt(note.getCreatedAt());
+        response.setUpdatedAt(note.getUpdatedAt());
+        return response;
+    }
+
+    public static List<NoteDtoResponse> toNoteListResponse(List<NoteModel> notes) {
+        if (notes == null)
+            return new ArrayList<>();
+
+        List<NoteDtoResponse> list = new ArrayList<>();
+        for (NoteModel note : notes) {
+            list.add(toNoteResponse(note));
+        }
         return list;
     }
 }

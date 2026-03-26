@@ -21,124 +21,114 @@ public class NotebookServlet extends BaseServlet {
     private final NotebookService notebookService = new NotebookService();
     private static final Logger LOGGER = Logger.getLogger(NotebookServlet.class.getName());
 
+    private boolean isNoteRequest(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String uri = req.getRequestURI();
+        if (uri.contains("/notes")) {
+            try {
+                // Extract Notebook ID from /notebooks/{id}/notes...
+                String[] parts = uri.split("/");
+                if (parts.length > 2) {
+                    long notebookId = Long.parseLong(parts[2]);
+                    
+                    // Validate Notebook existence
+                    NotebookModel notebook = notebookService.getNotebookById(notebookId);
+                    if (notebook == null) {
+                        LOGGER.warning("Notebook not found during handoff: " + notebookId);
+                        sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Notebook not found");
+                        return true;
+                    }
+
+                    // Set attribute for NoteServlet and forward
+                    req.setAttribute("notebookId", notebookId);
+                    LOGGER.info("Forwarding to NoteServlet for notebookId: " + notebookId);
+                    req.getServletContext().getNamedDispatcher("NoteServlet").forward(req, resp);
+                    return true;
+                }
+            } catch (Exception e) {
+                LOGGER.severe("Error during NoteServlet forwarding: " + e.getMessage());
+                sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid Notebook ID");
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (isNoteRequest(req, resp)) return;
+
         try {
-            LOGGER.info("Notebook fetch request received");
-
             Long notebookId = FrequentlyUsedMethods.getPathId(req);
-
             if (notebookId != null) {
-                LOGGER.info("Fetching notebook by id");
-
                 NotebookModel notebook = notebookService.getNotebookById(notebookId);
-                
                 if (notebook != null) {
-                    LOGGER.info("Notebook fetched successfully");
                     sendSuccess(resp, "Notebook Fetched Successfully", ResponseMapper.toNotebookResponse(notebook));
                 } else {
-                    LOGGER.warning("Notebook not found");
                     sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Notebook not found");
                 }
-                
             } else {
-                LOGGER.info("Fetching all notebooks for user");
-
                 List<NotebookModel> notebooks = notebookService.getUserNotebooks();
                 sendSuccess(resp, "Notebooks Fetched Successfully", ResponseMapper.toNotebookListResponse(notebooks));
             }
         } catch (Exception e) {
-            LOGGER.severe("Error while fetching notebook: " + e.getMessage());
             sendServerError(resp, e);
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (isNoteRequest(req, resp)) return;
         try {
-            LOGGER.info("Create notebook request received");
-
             NotebookDtoRequest request = FrequentlyUsedMethods.readJson(req, NotebookDtoRequest.class);
-            
             if (!RequestValidator.validateNotebook(request)) {
-                LOGGER.warning("Invalid notebook data provided");
                 sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Title is required");
                 return;
             }
-            
-            boolean created = notebookService.createNotebook(request);
-            
-            if (created) {
-                LOGGER.info("Notebook created successfully");
+            if (notebookService.createNotebook(request)) {
                 sendSuccess(resp, "Notebook created successfully");
             } else {
-                LOGGER.warning("Notebook creation failed");
                 sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Creation failed");
             }
         } catch (Exception e) {
-            LOGGER.severe("Error while creating notebook: " + e.getMessage());
             sendServerError(resp, e);
         }
     }
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (isNoteRequest(req, resp)) return;
         try {
-            LOGGER.info("Update notebook request received");
-
             Long notebookId = FrequentlyUsedMethods.getPathId(req);
-            
             if (notebookId == null) {
-                LOGGER.warning("Invalid notebook id provided in path");
-            	sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid path: ID must be a number");
-            }
-
-            NotebookDtoRequest request = FrequentlyUsedMethods.readJson(req, NotebookDtoRequest.class);
-            
-            if (!RequestValidator.validateNotebook(request)) {
-                LOGGER.warning("Invalid notebook update data provided");
-            	sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Title is required");
+                sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "ID required");
                 return;
             }
-
-            boolean updated = notebookService.updateNotebook(notebookId, request);
-            
-            if (updated) {
-                LOGGER.info("Notebook updated successfully");
+            NotebookDtoRequest request = FrequentlyUsedMethods.readJson(req, NotebookDtoRequest.class);
+            if (notebookService.updateNotebook(notebookId, request)) {
                 sendSuccess(resp, "Notebook updated successfully");
             } else {
-                LOGGER.warning("Notebook not found for update");
                 sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Notebook not found");
             }
         } catch (Exception e) {
-            LOGGER.severe("Error while updating notebook: " + e.getMessage());
             sendServerError(resp, e);
         }
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (isNoteRequest(req, resp)) return;
         try {
-            LOGGER.info("Delete notebook request received");
-
             Long notebookId = FrequentlyUsedMethods.getPathId(req);
-            
             if (notebookId == null) {
-                LOGGER.warning("Invalid notebook id provided in path");
-            	sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid path: ID must be a number");
+                sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "ID required");
+                return;
             }
-            
-            boolean deleted = notebookService.deleteNotebook(notebookId);
-            
-            if (deleted) {
-                LOGGER.info("Notebook deleted successfully");
+            if (notebookService.deleteNotebook(notebookId)) {
                 sendSuccess(resp, "Notebook deleted successfully");
             } else {
-                LOGGER.warning("Notebook not found for deletion");
                 sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Notebook not found");
             }
         } catch (Exception e) {
-            LOGGER.severe("Error while deleting notebook: " + e.getMessage());
             sendServerError(resp, e);
         }
     }

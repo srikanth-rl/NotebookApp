@@ -78,7 +78,7 @@ public class NotebookService {
             Long   userId = UserSessionContext.getId();
             NotebookModel nb = notebookDao.getNotebookById(userId, notebookId);
 
-            if (nb == null || nb.getOwnerId() != userId) {
+            if (nb == null || !nb.getOwnerId().equals(userId)) {
                 LOGGER.warning("Unauthorized notebook update attempt. notebookId=" + notebookId + ", userId=" + userId);
                 txMgr.rollback();
                 return false;
@@ -113,7 +113,7 @@ public class NotebookService {
             Long userId = UserSessionContext.getId();
             NotebookModel nb = notebookDao.getNotebookById(userId, notebookId);
 
-            if (nb == null || nb.getOwnerId() != userId) {
+            if (nb == null || !nb.getOwnerId().equals(userId)) {
                 LOGGER.warning("Unauthorized notebook delete attempt. notebookId=" + notebookId + ", userId=" + userId);
                 txMgr.rollback();
                 return false;

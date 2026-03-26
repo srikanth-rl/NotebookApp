@@ -54,7 +54,9 @@
 	</filter>
 	<filter-mapping>
 	    <filter-name>ThreadLocalFilter</filter-name>
-	    <url-pattern>/user/*</url-pattern>
+	    <url-pattern>/user/profile</url-pattern>
+	    <url-pattern>/user/contacts</url-pattern>
+	    <url-pattern>/user/logout</url-pattern>
 	    <url-pattern>/notebooks/*</url-pattern>
 	</filter-mapping>
 	
@@ -103,14 +105,26 @@
         <url-pattern>/user/contacts</url-pattern>
     </servlet-mapping>
 
+	<servlet>
+	    <servlet-name>NoteServlet</servlet-name>
+	    <servlet-class>com.zoho.notebook.controller.NoteServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	    <servlet-name>NoteServlet</servlet-name>
+	    <url-pattern>/notebooks/*/notes</url-pattern>
+	    <url-pattern>/notebooks/*/notes/*</url-pattern>
+	</servlet-mapping>
+
     <servlet>
         <servlet-name>NotebookServlet</servlet-name>
         <servlet-class>com.zoho.notebook.controller.NotebookServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>NotebookServlet</servlet-name>
-        <url-pattern>/notebooks/*</url-pattern>
+        <url-pattern>/notebooks</url-pattern>
+        <url-pattern>/notebooks/*</url-pattern> 
     </servlet-mapping>
+    
 
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

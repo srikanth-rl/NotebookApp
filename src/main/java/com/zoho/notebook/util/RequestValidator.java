@@ -1,5 +1,6 @@
 package com.zoho.notebook.util;
 
+import com.zoho.notebook.dto.request.NoteDtoRequest;
 import com.zoho.notebook.dto.request.NotebookDtoRequest;
 import com.zoho.notebook.dto.request.UserDtoRequest;
 
@@ -41,5 +42,20 @@ public class RequestValidator {
         if (req == null) 
         	return false;
         return FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getTitle());
+    }
+    
+    public static boolean validateNote(NoteDtoRequest req) {
+        if (req == null)
+            return false;
+        return FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getTitle())
+            || FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getContent());
+    }
+
+    public static boolean validateUpdateNote(NoteDtoRequest req) {
+        if (req == null)
+            return false;
+        return FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getTitle())
+            || FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getContent())
+            || req.getIsPinned() != null;
     }
 }

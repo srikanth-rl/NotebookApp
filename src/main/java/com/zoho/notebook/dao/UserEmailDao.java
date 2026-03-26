@@ -61,7 +61,7 @@ public class UserEmailDao {
                 UserEmailModel email = new UserEmailModel();
                 email.setId(((Number) ds.getValue("ID")).longValue());
                 email.setEmail((String) ds.getValue("EMAIL"));
-                email.setPrimary(((Number) ds.getValue("IS_PRIMARY")).intValue() == 1);
+                email.setPrimary((Boolean) ds.getValue("IS_PRIMARY"));
                 email.setCreatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimeZone));
                 email.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimeZone));
                 emails.add(email);

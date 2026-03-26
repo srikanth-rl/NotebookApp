@@ -297,6 +297,7 @@
             </column>
             <column name="CONTENT">
                 <data-type>CHAR</data-type>
+                <max-size>255</max-size>
             </column>
             <column name="IS_PINNED">
                 <data-type>BOOLEAN</data-type>

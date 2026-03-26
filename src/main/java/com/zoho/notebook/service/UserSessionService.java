@@ -77,8 +77,8 @@ public class UserSessionService {
         UserModel user = null;
 
         try {
-            // get generic configured cache
-            user = sessionCache.get(sessionId);
+            // get sessionUser from configured cache
+            user = getSessionUser(sessionId);
         } catch (Exception e) {
             LOGGER.severe("Session cache read failed: " + e.getMessage());
             e.printStackTrace();
