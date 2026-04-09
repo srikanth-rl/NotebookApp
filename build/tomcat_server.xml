@@ -1,41 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Server port="8005">
 
-  <Service name="Catalina">
+	<Service name="Catalina">
 
-    <Connector port="8080" protocol="HTTP/1.1"
-               connectionTimeout="20000"
-               redirectPort="8443"
-               URIEncoding="UTF-8" />
+		<Connector port="8080" protocol="HTTP/1.1"
+			connectionTimeout="20000"
+			redirectPort="8443"
+			URIEncoding="UTF-8" />
 
-    <Connector port="8443"
-               maxThreads="150"
-               minSpareThreads="25"
-               maxSpareThreads="75"
-               enableLookups="false"
-               disableUploadTimeout="true"
-               useBodyEncodingForURI="true"
-               acceptCount="100"
-               connectionTimeout="20000"
-               scheme="https"
-               secure="true"
-               clientAuth="false"
-               sslProtocol="TLS"
-               SSLEnabled="true"
-               keystoreFile="conf/sas.keystore"
-               keystoreType="JKS"
-               keystorePass="N5$0IfC:4o:^KJ" />
+		<Connector port="8443"
+			maxThreads="150"
+			minSpareThreads="25"
+			maxSpareThreads="75"
+			enableLookups="false"
+			disableUploadTimeout="true"
+			useBodyEncodingForURI="true"
+			acceptCount="100"
+			connectionTimeout="20000"
+			scheme="https"
+			secure="true"
+			clientAuth="false"
+			sslProtocol="TLS"
+			SSLEnabled="true"
+			keystoreFile="conf/sas.keystore"
+			keystoreType="JKS"
+			keystorePass="N5$0IfC:4o:^KJ" />
 
-    <Engine name="Catalina" defaultHost="localhost">
-      <Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="false">
-        
-        <Valve className="org.apache.catalina.valves.AccessLogValve" 
-               directory="logs"
-               prefix="access_log" 
-               suffix=".log"
-               pattern='{ "time": "%t", "status": "%s", "request_uri": "%U" }' />
+		<Engine name="Catalina" defaultHost="localhost">
+			<Host name="localhost" appBase="webapps" unpackWARs="true"
+				autoDeploy="false">
 
-      </Host>
-    </Engine>
-  </Service>
+				<Valve className="org.apache.catalina.valves.AccessLogValve"
+					directory="logs"
+					prefix="access_log"
+					suffix=".log"
+					pattern='{ "time": "%t", "status": "%s", "request_uri": "%U" }' />
+
+			</Host>
+		</Engine>
+	</Service>
 </Server>

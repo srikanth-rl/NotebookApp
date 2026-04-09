@@ -1,31 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<security xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="security.xsd">
-    <urls>
-        <!-- Static assets -->
-        <url path="/favicon.ico" method="get" authentication="public"/>
-        <url path="/js/.*" path-regex="true" method="get" authentication="public"/>
-        <url path="/css/.*" path-regex="true" method="get" authentication="public"/>
+<security xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="security.xsd">
+	<urls>
+		<!-- Static assets -->
+		<url path="/favicon.ico" method="get" authentication="public" />
+		<url path="/js/.*" path-regex="true" method="get" authentication="public" />
+		<url path="/css/.*" path-regex="true" method="get" authentication="public" />
 
-        <!-- SPA entry points -->
-        <url path="/" method="get" authentication="optional"/>
-        <url path="/index.html" method="get" authentication="optional"/>
+		<!-- IAM login page -->
+		<url path="/login.jsp" method="get" authentication="public" />
 
-        <!-- Auth endpoints — no session required -->
-        <url path="/user/signup" method="get,post" authentication="public">
-            <param name="username" type="String" />
-            <param name="password" type="String" />
-        </url>
-        <url path="/user/login" method="get,post" authentication="public">
-            <param name="username" type="String" />
-            <param name="password" type="String" />
-        </url>
+		<url path="/" method="get" authentication="optional" />
+		<url path="/index.html" method="get" authentication="optional" />
 
-        <!-- User endpoints — session required -->
-        <url path="/user/logout" method="get" authentication="required"/>
-        <url path="/user/profile" method="get,put" authentication="required"/>
-        <url path="/user/contacts" method="get,post,put,delete" authentication="required"/>
+		<!-- User endpoints — IAM handles auth -->
+		<url path="/user/logout" method="get" authentication="required" />
+		<url path="/user/profile" method="get,put" authentication="required" />
+		<url path="/user/contacts" method="get,post,put,delete" authentication="required" />
 
-		<url path="/notebooks/(\d+)/notes(/.*)?" path-regex="true" method="get,post,put,delete" authentication="required"/>
-		<url path="/notebooks(/.*)?" path-regex="true" method="get,post,put,delete" authentication="required"/>
-    </urls>
+		<url path="/notebooks/(\d+)/notes(/.*)?" path-regex="true" method="get,post,put,delete" authentication="required" />
+		<url path="/notebooks(/.*)?" path-regex="true" method="get,post,put,delete" authentication="required" />
+	</urls>
 </security>

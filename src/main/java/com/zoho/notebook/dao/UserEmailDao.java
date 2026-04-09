@@ -41,7 +41,7 @@ public class UserEmailDao {
         return d.getRow(TableName.UserEmail.name()) != null;
     }
 
-    public List<UserEmailModel> getEmailDetailsByUserId(Long userId, String userTimeZone) throws Exception {
+    public List<UserEmailModel> getEmailDetailsByUserId(Long userId, String userTimezone) throws Exception {
         List<UserEmailModel> emails = new ArrayList<>();
 
         SelectQueryImpl q = new SelectQueryImpl(new Table(TableName.UserEmail.name()));
@@ -62,8 +62,8 @@ public class UserEmailDao {
                 email.setId(((Number) ds.getValue("ID")).longValue());
                 email.setEmail((String) ds.getValue("EMAIL"));
                 email.setPrimary((Boolean) ds.getValue("IS_PRIMARY"));
-                email.setCreatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimeZone));
-                email.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimeZone));
+                email.setCreatedAt(FrequentlyUsedMethods.formatMsToTimezone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimezone));
+                email.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimezone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimezone));
                 emails.add(email);
             }
         } finally {

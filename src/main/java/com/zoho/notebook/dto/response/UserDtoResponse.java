@@ -43,11 +43,11 @@ public class UserDtoResponse {
         this.status = status;
     }
 
-    public String getTimeZone() {
+    public String getTimezone() {
         return timeZone;
     }
 
-    public void setTimeZone(String timeZone) {
+    public void setTimezone(String timeZone) {
         this.timeZone = timeZone;
     }
 

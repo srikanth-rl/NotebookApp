@@ -114,7 +114,7 @@ public class AuthenticationFilter implements Filter {
                 UserSessionContext.set(
                     sessionUser.getId(),
                     sessionUser.getDisplayName(),
-                    sessionUser.getTimeZone(),
+                    sessionUser.getTimezone(),
                     req.getRemoteAddr()
                 );
                 chain.doFilter(request, response);

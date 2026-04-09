@@ -2,200 +2,253 @@
 <!--$Id$ -->
 <provisioning-configurations>
 
-<GridConfiguration propname="PROV-CMD" propval="runcmd PROV-IP /home/sas/backup/provisioning/runner.sh"/>
-<GridConfiguration propname="telnet-port" propval="23"/>
-<GridConfiguration propname="clean-node-cmd" propval="PROV-CMD cleanNode"/>
-<GridConfiguration propname="get-running-processes-cmd" propval="PROV-CMD getRunningProcesses"/>
-<GridConfiguration propname="backup-server-replace-cmd" propval="PROV-CMD rsyncBackupServer $ip"/>
-<GridConfiguration propname="install-server-cmd" propval="PROV-CMD startAppServer"/>
-<GridConfiguration propname="install-fos" propval="PROV-CMD startFOS arg1 arg2 arg3 /home/sas/fos/combomon arg4"/>
-<GridConfiguration propname="relieve-vip-cmd" propval="sudo /sbin/ip addr del clusterip/32 dev bond0"/>
-<!-- hard coding netmask and if name change once find proper solution-->
-<GridConfiguration propname="relieve-vip-cmd-ipv6" propval="sudo /sbin/ip addr del clusterip/64 dev bond0"/> 
-<GridConfiguration propname="install-mysql-cmd" propval="PROV-CMD startMysql "/>
-<GridConfiguration propname="install-file-server-cmd" propval="PROV-CMD startFS arg1 arg2 arg3 "/>
-<GridConfiguration propname="schema-creation" propval="PROV-CMD createAccountNG arg1 arg2 arg3 arg4 arg5 arg6 arg7"/>
-<GridConfiguration propname="binary-check-cmd" propval="/home/sas/backup/provisioning/util/binarychecker.sh OPERATION FILENAME"/>
+	<GridConfiguration propname="PROV-CMD"
+		propval="runcmd PROV-IP /home/sas/backup/provisioning/runner.sh" />
+	<GridConfiguration propname="telnet-port" propval="23" />
+	<GridConfiguration propname="clean-node-cmd" propval="PROV-CMD cleanNode" />
+	<GridConfiguration propname="get-running-processes-cmd"
+		propval="PROV-CMD getRunningProcesses" />
+	<GridConfiguration propname="backup-server-replace-cmd"
+		propval="PROV-CMD rsyncBackupServer $ip" />
+	<GridConfiguration propname="install-server-cmd"
+		propval="PROV-CMD startAppServer" />
+	<GridConfiguration propname="install-fos"
+		propval="PROV-CMD startFOS arg1 arg2 arg3 /home/sas/fos/combomon arg4" />
+	<GridConfiguration propname="relieve-vip-cmd"
+		propval="sudo /sbin/ip addr del clusterip/32 dev bond0" />
+	<!-- hard coding netmask and if name change once find proper solution-->
+	<GridConfiguration propname="relieve-vip-cmd-ipv6"
+		propval="sudo /sbin/ip addr del clusterip/64 dev bond0" />
+	<GridConfiguration propname="install-mysql-cmd"
+		propval="PROV-CMD startMysql " />
+	<GridConfiguration propname="install-file-server-cmd"
+		propval="PROV-CMD startFS arg1 arg2 arg3 " />
+	<GridConfiguration propname="schema-creation"
+		propval="PROV-CMD createAccountNG arg1 arg2 arg3 arg4 arg5 arg6 arg7" />
+	<GridConfiguration propname="binary-check-cmd"
+		propval="/home/sas/backup/provisioning/util/binarychecker.sh OPERATION FILENAME" />
 
 
-<!--This command will be used for pushing the upgrade script and running it -->
-<GridConfiguration propname="run-upgrade-script" propval="PROV-CMD runUpgradeScript arg1"/>
-<GridConfiguration propname="write-version" propval="PROV-CMD writeVersion arg1"/>
-<GridConfiguration propname="reboot" propval="PROV-CMD sudo /sbin/reboot"/>
-<GridConfiguration propname="after-reboot-attempts" propval="10"/>
-<GridConfiguration propname="wait-time" propval="30000"/>
-<GridConfiguration propname="kill-mysql-master" propval="PROV-CMD killMasterForUpgrade arg1"/>
-<GridConfiguration propname="send-fos-signal" propval="PROV-CMD sendFOSSignal arg1"/>
+	<!--This command will be used for pushing the upgrade script and running it -->
+	<GridConfiguration propname="run-upgrade-script"
+		propval="PROV-CMD runUpgradeScript arg1" />
+	<GridConfiguration propname="write-version"
+		propval="PROV-CMD writeVersion arg1" />
+	<GridConfiguration propname="reboot" propval="PROV-CMD sudo /sbin/reboot" />
+	<GridConfiguration propname="after-reboot-attempts" propval="10" />
+	<GridConfiguration propname="wait-time" propval="30000" />
+	<GridConfiguration propname="kill-mysql-master"
+		propval="PROV-CMD killMasterForUpgrade arg1" />
+	<GridConfiguration propname="send-fos-signal"
+		propval="PROV-CMD sendFOSSignal arg1" />
 
-<GridConfiguration propname="monitor-cpu" propval="PROV-CMD checkCPU"/>
-<GridConfiguration propname="monitor-memory" propval="PROV-CMD checkMemory"/>
-<GridConfiguration propname="monitor-link" propval="PROV-CMD checkLink"/>
-<GridConfiguration propname="monitor-kernel" propval="PROV-CMD checkKernel"/>
-<GridConfiguration propname="monitor-hard-disk" propval="PROV-CMD checkDisk"/>
-<GridConfiguration propname="monitor-fs" propval="PROV-CMD checkFS"/>
-<GridConfiguration propname="monitor-space" propval="PROV-CMD checkSpace arg1"/>
-<GridConfiguration propname="monitor-gateway-link" propval="PROV-CMD checkGatewayLink"/>
-<GridConfiguration propname="monitor-uptime" propval="PROV-CMD checkUpTime"/>
+	<GridConfiguration propname="monitor-cpu" propval="PROV-CMD checkCPU" />
+	<GridConfiguration propname="monitor-memory" propval="PROV-CMD checkMemory" />
+	<GridConfiguration propname="monitor-link" propval="PROV-CMD checkLink" />
+	<GridConfiguration propname="monitor-kernel" propval="PROV-CMD checkKernel" />
+	<GridConfiguration propname="monitor-hard-disk" propval="PROV-CMD checkDisk" />
+	<GridConfiguration propname="monitor-fs" propval="PROV-CMD checkFS" />
+	<GridConfiguration propname="monitor-space"
+		propval="PROV-CMD checkSpace arg1" />
+	<GridConfiguration propname="monitor-gateway-link"
+		propval="PROV-CMD checkGatewayLink" />
+	<GridConfiguration propname="monitor-uptime" propval="PROV-CMD checkUpTime" />
 
-<GridConfiguration propname="kill-application" propval="killall -9 java;killall -HUP fos;killall -9 mysqld_safe;killall -9 mysqld"/>
-<GridConfiguration propname="drop-database" propval="PROV-CMD dropDatabase"/>
-<GridConfiguration propname="uninstall-mysql" propval="killall -9 mysqld_safe;killall -9 mysqld;rm -rf mysql/"/>
-<GridConfiguration propname="uninstall-backup" propval="rm -rf backup/"/>
-<GridConfiguration propname="appserver-backup-table-updated" propval="true" />
-
-
-<GridConfiguration propname="server-username" propval="sas"/>
-<GridConfiguration propname="server-password" propval="sas"/>
-<GridConfiguration propname="disk-size-cmd" propval="df -m|grep home| tr -s '\t' ' '|cut -d ' ' -f 2,4"/>
-<GridConfiguration propname="os-type-cmd" propval="ls /proc/sys/kernel/ostype"/>
-<GridConfiguration propname="public-ip-check" propval="/sbin/ip addr | grep :vip | grep -wF "/>
-<GridConfiguration propname="public-ip-check-ipv6" propval="/sbin/ip addr |grep -i inet6 |grep -i global |grep -wF "/>
-<GridConfiguration propname="split-brain-check" propval="/sbin/ip addr | grep :vip | grep -wF"/>
-
+	<GridConfiguration propname="kill-application"
+		propval="killall -9 java;killall -HUP fos;killall -9 mysqld_safe;killall -9 mysqld" />
+	<GridConfiguration propname="drop-database" propval="PROV-CMD dropDatabase" />
+	<GridConfiguration propname="uninstall-mysql"
+		propval="killall -9 mysqld_safe;killall -9 mysqld;rm -rf mysql/" />
+	<GridConfiguration propname="uninstall-backup" propval="rm -rf backup/" />
+	<GridConfiguration propname="appserver-backup-table-updated" propval="true" />
 
 
-<GridConfiguration propname="fos-check" propval="ps auxwwww| grep -w /home/sas/fos/fos | grep -v grep "/>
-<GridConfiguration propname="rsync-backup-file" propval="PROV-CMD rsyncBackupFile"/>
-
-<!-- The minimum required disk space (in MB) which should be present for backup-->
-<GridConfiguration propname="min-disk-required" propval="1500"/>
-<GridConfiguration propname="zoho-from-mail-id" propval=""/>
-<GridConfiguration propname="zoho-mail-id" propval=""/>
-<GridConfiguration propname="zorro-mail-id" propval=""/>
-<GridConfiguration propname="upgrade-mail-id" propval=""/>
-
-<GridConfiguration propname="mysql-readonly-username" propval="sasroms"/>
-<GridConfiguration propname="mysql-readonly-password" propval="readonly"/>
-<GridConfiguration propname="db-replication-username" propval="repl"/>
-<GridConfiguration propname="db-replication-password" propval="repl"/>
-
-<GridConfiguration propname="grid-mysql-mode" propval="1"/>
-
-<GridConfiguration propname="mail-server" propval=""/>
-<GridConfiguration propname="jgroup-group-id" propval="default"/>
-<GridConfiguration propname="grid-access-ip" propval="0:0"/>
-<GridConfiguration propname="jgroup-multicast-ip" propval="229.2.3.4"/>
-<GridConfiguration propname="jgroup-multicast-port" propval="45556"/>
-<GridConfiguration propname="admin-login-status" propval="FALSE"/>
-<GridConfiguration propname="admin-password" propval="51yH3XP2AfuEsK6m/57HRA=="/>
-<GridConfiguration propname="admin-salt" propval="1142426434637"/>
-<GridConfiguration propname="reboot-server" propval="PROV-CMD rebootServer arg1"/>
-<GridConfiguration propname="AccountCreation-Status" propval=""/>
-
-<GridConfiguration propname="min-free-accounts" propval="500"/>
-<GridConfiguration propname="lvs-ping-time" propval="20000"/>
-<GridConfiguration propname="grid-update-script-dir" propval="/home/sas/backup/provisioning/tools"/>
-<GridConfiguration propname="grid-update-script" propval="cd arg1;sh gridupdater.sh arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9 arg0"/>
-<GridConfiguration propname="mysql-root-password" propval="root@123"/>
-
-<GridConfiguration propname="export-Import-Data" propval="PROV-CMD exportAndImportData arg1 arg2 arg3 arg4 arg5 arg6 arg7"/>
-<GridConfiguration propname="check-mysql-logs" propval="PROV-CMD checkMysqlLog"/>
-<!-- mysql_user, mysql_passwd, master_ip, bin_log_file-->
-<GridConfiguration propname="start-mysql-master-as-slave" propval="PROV-CMD startMysqlMasterAsSlave"/>
-<GridConfiguration propname="is-mysql-repl-lag" propval="PROV-CMD isMysqlReplLag"/>
-<GridConfiguration propname="ignore-mysql-exception-for-audit" propval=""/>
-<GridConfiguration propname="clean-account-cmd" propval="PROV-CMD cleanAccount"/>
-<GridConfiguration propname="dumpDBData" propval="PROV-CMD dumpDBData"/>
-<GridConfiguration propname="restoreDBDump" propval="PROV-CMD restoreDBDump"/>
-
-<!-- DBProxy commands -->
-<GridConfiguration propname="install-proxysql" propval="PROV-CMD installDBProxy"/>
-
-<!--arg is root password-->
-<GridConfiguration propname="gridmon-start" propval="PROV-CMD startGridMon arg1 arg2"/>
-<GridConfiguration propname="gridmon-stop" propval="killall gridmon"/>
-<GridConfiguration propname="gridmon-check" propval="ps auxwwww| grep -w gridmon | grep -v grep "/>
-<GridConfiguration propname="checkAndStart-gridmon" propval="PROV-CMD checkAndStartGridMon arg1"/>
-
-<!--args are <master_grid_new_master_host> <mysql_root_password> <master_grid_mc_user_name> <master_grid_mc_password>  -->
-<GridConfiguration propname="site-mg-master-failure" propval="PROV-CMD handleMGMasterFailure arg1 arg2 arg3 arg4"/>
-
-<!--args are <master_grid_new_master_host>  <mysql_root_password>  <master_grid_mc_user_name> <master_grid_mc_password> -->
-<GridConfiguration propname="site-sg-master-failure" propval="PROV-CMD handleSGMasterFailure arg1 arg2 arg3 arg4"/>
-<GridConfiguration propname="site-async-fs-failure" propval="PROV-CMD handleASyncFSFailure arg1 arg2"/>
-<GridConfiguration propname="install-async-file-server-cmd" propval="PROV-CMD setUpASyncFSSlave arg1 arg2 arg3 arg4 arg5 arg6"/>
-<GridConfiguration propname="mg-server-username" propval="sas"/>
-<GridConfiguration propname="mg-server-password" propval="sas"/>
-<GridConfiguration propname="logout_pattern" propval="/IAMCompleteLogout"/>
-<GridConfiguration propname="service_name" propval=""/>
-<GridConfiguration propname="restart-failed-server-as-slave" propval="PROV-CMD restartFailedServerAsSlave"/>
-<GridConfiguration propname="min-slave-count" propval="1"/>
+	<GridConfiguration propname="server-username" propval="sas" />
+	<GridConfiguration propname="server-password" propval="sas" />
+	<GridConfiguration propname="disk-size-cmd"
+		propval="df -m|grep home| tr -s '\t' ' '|cut -d ' ' -f 2,4" />
+	<GridConfiguration propname="os-type-cmd"
+		propval="ls /proc/sys/kernel/ostype" />
+	<GridConfiguration propname="public-ip-check"
+		propval="/sbin/ip addr | grep :vip | grep -wF " />
+	<GridConfiguration propname="public-ip-check-ipv6"
+		propval="/sbin/ip addr |grep -i inet6 |grep -i global |grep -wF " />
+	<GridConfiguration propname="split-brain-check"
+		propval="/sbin/ip addr | grep :vip | grep -wF" />
 
 
-<GridConfiguration propname="accounts-per-schema" propval=""/>
-<GridConfiguration propname="mesh-appserver-usernames" propval="default"/>
-<GridConfiguration propname="max-dataspace-size-allowance" propval="50"/>
-<GridConfiguration propname="AppAuditMailTime" propval="150"/>
-<GridConfiguration propname="GridAuditMailTime" propval="150"/>
+	<GridConfiguration propname="fos-check"
+		propval="ps auxwwww| grep -w /home/sas/fos/fos | grep -v grep " />
+	<GridConfiguration propname="rsync-backup-file"
+		propval="PROV-CMD rsyncBackupFile" />
 
-<!--Scheduler Grid related -->
-<GridConfiguration propname="sg-lvs-ip" propval=""/>
-<GridConfiguration propname="sg-lvs-ro-ip" propval=""/>
-<GridConfiguration propname="sg-lvs-connect-timeout" propval="6000"/>
-<GridConfiguration propname="dataspace-creation-count" propval=""/>
+	<!-- The minimum required disk space (in MB) which should be present for
+	backup-->
+	<GridConfiguration propname="min-disk-required" propval="1500" />
+	<GridConfiguration propname="zoho-from-mail-id" propval="" />
+	<GridConfiguration propname="zoho-mail-id" propval="" />
+	<GridConfiguration propname="zorro-mail-id" propval="" />
+	<GridConfiguration propname="upgrade-mail-id" propval="" />
 
-<!--Redis server configuration for cache framework-->
-<GridConfiguration propname="redis-server-ip" propval="default"/>
-<GridConfiguration propname="redis-server-port" propval="default"/>
-<GridConfiguration propname="redis-instance" propval="sas"/>
-<GridConfiguration propname="redis-max-mem-updated" propval="true"/>
+	<GridConfiguration propname="mysql-readonly-username" propval="sasroms" />
+	<GridConfiguration propname="mysql-readonly-password" propval="readonly" />
+	<GridConfiguration propname="db-replication-username" propval="repl" />
+	<GridConfiguration propname="db-replication-password" propval="repl" />
 
-<!-- Restoration from remote backup -->
-<GridConfiguration propname="backup_server_ip" propval=""/>
-<GridConfiguration propname="backup_server_dir" propval=""/>
-<GridConfiguration propname="compression_enabled" propval=""/>
-<GridConfiguration propname="backup_server_username" propval=""/>
-<GridConfiguration propname="backup_server_password" propval=""/>
-<GridConfiguration propname="restoreFromRemoteBackup" propval="FALSE"/>
-<GridConfiguration propname="dr-vault-server-enabled" propval="false"/>
+	<GridConfiguration propname="grid-mysql-mode" propval="1" />
 
-<!-- Bulk Export related properties. -->
-<GridConfiguration propname="start-bulk-export" propval="PROV-CMD startBulkExport arg1 arg2 arg3 arg4"/>
-<GridConfiguration propname="check-bulk-export" propval="PROV-CMD checkExportStatus arg1 arg2"/>
-<GridConfiguration propname="bulk-export-max-retry" propval="3"/>
-<GridConfiguration propname="bulk-export-directory" propval="/dev/shm/"/>
-<GridConfiguration propname="be-class-updated" propval="true"/>
-<GridConfiguration propname="isEDiscoveryEnabled" propval="true"/>
-<!-- Monitoring Server properties. -->
-<GridConfiguration propname="monitoring-server-ip" propval="default"/>
-<GridConfiguration propname="monitoring-server-port" propval="default"/>
-<GridConfiguration propname="monitoring-server-port-timeseries" propval="default"/>
-<GridConfiguration propname="monitoring-server-ip-timeseries" propval="default"/>
-<GridConfiguration propname="mi-featuretracking-ip" propval="default"/>
-<GridConfiguration propname="mi-featuretracking-port" propval="default"/>
-<GridConfiguration propname="monitoring-domain-name" propval="default"/>
-<GridConfiguration propname="mi-featuretracking-domain-name" propval="default"/>
-<GridConfiguration propname="cms-operational-check" propval="true"/>
+	<GridConfiguration propname="mail-server" propval="" />
+	<GridConfiguration propname="jgroup-group-id" propval="default" />
+	<GridConfiguration propname="grid-access-ip" propval="0:0" />
+	<GridConfiguration propname="jgroup-multicast-ip" propval="229.2.3.4" />
+	<GridConfiguration propname="jgroup-multicast-port" propval="45556" />
+	<GridConfiguration propname="admin-login-status" propval="FALSE" />
+	<GridConfiguration propname="admin-password"
+		propval="51yH3XP2AfuEsK6m/57HRA==" />
+	<GridConfiguration propname="admin-salt" propval="1142426434637" />
+	<GridConfiguration propname="reboot-server"
+		propval="PROV-CMD rebootServer arg1" />
+	<GridConfiguration propname="AccountCreation-Status" propval="" />
 
-<!-- Account sizing -->
-<GridConfiguration propname="reference-data-size" propval="0"/>
-<GridConfiguration propname="static-table-count" propval="0"/>
-<GridConfiguration propname="avg-user-specific-tables" propval="0"/>
-<GridConfiguration propname="max-files-per-schema" propval="10000"/>
-<GridConfiguration propname="Get-Avg-Userspecific-Table-count" propval="PROV-CMD getAverageUserSpecificTableCount arg1 arg2 arg3"/>
-<GridConfiguration propname="max-cpu-threshold" propval="80"/>
-<GridConfiguration propname="max-io-threshold" propval="80"/>
-<GridConfiguration propname="cpu-anyalsis-threshold" propval="8"/>
-<GridConfiguration propname="max-connections-threshold-percent" propval="85"/>
-<GridConfiguration propname="max-ram-size" propval="128"/>
-<GridConfiguration propname="auto_dataspace_creation" propval="false"/>
-<GridConfiguration propname="multiGrid" propval="false"/>
-<GridConfiguration propname="dataspace_creation_v2" propval="false"/>
-<GridConfiguration propname="schema-creation_v2" propval="PROV-CMD createAccount_v2 arg1 arg2 arg3 arg4 arg5 arg6 arg7"/>
+	<GridConfiguration propname="min-free-accounts" propval="500" />
+	<GridConfiguration propname="lvs-ping-time" propval="20000" />
+	<GridConfiguration propname="grid-update-script-dir"
+		propval="/home/sas/backup/provisioning/tools" />
+	<GridConfiguration propname="grid-update-script"
+		propval="cd arg1;sh gridupdater.sh arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9 arg0" />
+	<GridConfiguration propname="mysql-root-password" propval="root@123" />
 
-<GridConfiguration propname="mainclusterip" propval=""/>
+	<GridConfiguration propname="export-Import-Data"
+		propval="PROV-CMD exportAndImportData arg1 arg2 arg3 arg4 arg5 arg6 arg7" />
+	<GridConfiguration propname="check-mysql-logs"
+		propval="PROV-CMD checkMysqlLog" />
+	<!-- mysql_user, mysql_passwd, master_ip, bin_log_file-->
+	<GridConfiguration propname="start-mysql-master-as-slave"
+		propval="PROV-CMD startMysqlMasterAsSlave" />
+	<GridConfiguration propname="is-mysql-repl-lag"
+		propval="PROV-CMD isMysqlReplLag" />
+	<GridConfiguration propname="ignore-mysql-exception-for-audit" propval="" />
+	<GridConfiguration propname="clean-account-cmd"
+		propval="PROV-CMD cleanAccount" />
+	<GridConfiguration propname="dumpDBData" propval="PROV-CMD dumpDBData" />
+	<GridConfiguration propname="restoreDBDump" propval="PROV-CMD restoreDBDump" />
 
-<GridConfiguration propname="zac-deployment" propval="enabled"/>
-<GridConfiguration propname="max-db" propval="700"/>
+	<!-- DBProxy commands -->
+	<GridConfiguration propname="install-proxysql"
+		propval="PROV-CMD installDBProxy" />
 
-<GridConfiguration propname="dbcluster_specific_features_enabled" propval="false"/>
-<GridConfiguration propname="dont-flush-redis" propval="true"/>
-<GridConfiguration propname="redis_category_feature_enabled" propval="v2"/>
-<GridConfiguration propname="max-concurrent-moveds-dest" propval="10"/>
+	<!--arg is root password-->
+	<GridConfiguration propname="gridmon-start"
+		propval="PROV-CMD startGridMon arg1 arg2" />
+	<GridConfiguration propname="gridmon-stop" propval="killall gridmon" />
+	<GridConfiguration propname="gridmon-check"
+		propval="ps auxwwww| grep -w gridmon | grep -v grep " />
+	<GridConfiguration propname="checkAndStart-gridmon"
+		propval="PROV-CMD checkAndStartGridMon arg1" />
 
-<GridConfiguration propname="restricted-roles" propval=""/>
-<GridConfiguration propname="db-management" propval="local"/>
+	<!--args are <master_grid_new_master_host> <mysql_root_password> <master_grid_mc_user_name> <master_grid_mc_password>  -->
+	<GridConfiguration propname="site-mg-master-failure"
+		propval="PROV-CMD handleMGMasterFailure arg1 arg2 arg3 arg4" />
 
-<GridConfiguration propname="properties-propagation-watcher-status" propval="TRUE"/>
+	<!--args are <master_grid_new_master_host>  <mysql_root_password>  <master_grid_mc_user_name> <master_grid_mc_password> -->
+	<GridConfiguration propname="site-sg-master-failure"
+		propval="PROV-CMD handleSGMasterFailure arg1 arg2 arg3 arg4" />
+	<GridConfiguration propname="site-async-fs-failure"
+		propval="PROV-CMD handleASyncFSFailure arg1 arg2" />
+	<GridConfiguration propname="install-async-file-server-cmd"
+		propval="PROV-CMD setUpASyncFSSlave arg1 arg2 arg3 arg4 arg5 arg6" />
+	<GridConfiguration propname="mg-server-username" propval="sas" />
+	<GridConfiguration propname="mg-server-password" propval="sas" />
+	<GridConfiguration propname="logout_pattern" propval="/IAMCompleteLogout" />
+	<GridConfiguration propname="service_name" propval="" />
+	<GridConfiguration propname="restart-failed-server-as-slave"
+		propval="PROV-CMD restartFailedServerAsSlave" />
+	<GridConfiguration propname="min-slave-count" propval="1" />
+
+
+	<GridConfiguration propname="accounts-per-schema" propval="" />
+	<GridConfiguration propname="mesh-appserver-usernames" propval="default" />
+	<GridConfiguration propname="max-dataspace-size-allowance" propval="50" />
+	<GridConfiguration propname="AppAuditMailTime" propval="150" />
+	<GridConfiguration propname="GridAuditMailTime" propval="150" />
+
+	<!--Scheduler Grid related -->
+	<GridConfiguration propname="sg-lvs-ip" propval="" />
+	<GridConfiguration propname="sg-lvs-ro-ip" propval="" />
+	<GridConfiguration propname="sg-lvs-connect-timeout" propval="6000" />
+	<GridConfiguration propname="dataspace-creation-count" propval="" />
+
+	<!--Redis server configuration for cache framework-->
+	<GridConfiguration propname="redis-server-ip" propval="default" />
+	<GridConfiguration propname="redis-server-port" propval="default" />
+	<GridConfiguration propname="redis-instance" propval="sas" />
+	<GridConfiguration propname="redis-max-mem-updated" propval="true" />
+
+	<!-- Restoration from remote backup -->
+	<GridConfiguration propname="backup_server_ip" propval="" />
+	<GridConfiguration propname="backup_server_dir" propval="" />
+	<GridConfiguration propname="compression_enabled" propval="" />
+	<GridConfiguration propname="backup_server_username" propval="" />
+	<GridConfiguration propname="backup_server_password" propval="" />
+	<GridConfiguration propname="restoreFromRemoteBackup" propval="FALSE" />
+	<GridConfiguration propname="dr-vault-server-enabled" propval="false" />
+
+	<!-- Bulk Export related properties. -->
+	<GridConfiguration propname="start-bulk-export"
+		propval="PROV-CMD startBulkExport arg1 arg2 arg3 arg4" />
+	<GridConfiguration propname="check-bulk-export"
+		propval="PROV-CMD checkExportStatus arg1 arg2" />
+	<GridConfiguration propname="bulk-export-max-retry" propval="3" />
+	<GridConfiguration propname="bulk-export-directory" propval="/dev/shm/" />
+	<GridConfiguration propname="be-class-updated" propval="true" />
+	<GridConfiguration propname="isEDiscoveryEnabled" propval="true" />
+	<!-- Monitoring Server properties. -->
+	<GridConfiguration propname="monitoring-server-ip" propval="default" />
+	<GridConfiguration propname="monitoring-server-port" propval="default" />
+	<GridConfiguration propname="monitoring-server-port-timeseries"
+		propval="default" />
+	<GridConfiguration propname="monitoring-server-ip-timeseries"
+		propval="default" />
+	<GridConfiguration propname="mi-featuretracking-ip" propval="default" />
+	<GridConfiguration propname="mi-featuretracking-port" propval="default" />
+	<GridConfiguration propname="monitoring-domain-name" propval="default" />
+	<GridConfiguration propname="mi-featuretracking-domain-name"
+		propval="default" />
+	<GridConfiguration propname="cms-operational-check" propval="true" />
+
+	<!-- Account sizing -->
+	<GridConfiguration propname="reference-data-size" propval="0" />
+	<GridConfiguration propname="static-table-count" propval="0" />
+	<GridConfiguration propname="avg-user-specific-tables" propval="0" />
+	<GridConfiguration propname="max-files-per-schema" propval="10000" />
+	<GridConfiguration propname="Get-Avg-Userspecific-Table-count"
+		propval="PROV-CMD getAverageUserSpecificTableCount arg1 arg2 arg3" />
+	<GridConfiguration propname="max-cpu-threshold" propval="80" />
+	<GridConfiguration propname="max-io-threshold" propval="80" />
+	<GridConfiguration propname="cpu-anyalsis-threshold" propval="8" />
+	<GridConfiguration propname="max-connections-threshold-percent" propval="85" />
+	<GridConfiguration propname="max-ram-size" propval="128" />
+	<GridConfiguration propname="auto_dataspace_creation" propval="false" />
+	<GridConfiguration propname="multiGrid" propval="false" />
+	<GridConfiguration propname="dataspace_creation_v2" propval="false" />
+	<GridConfiguration propname="schema-creation_v2"
+		propval="PROV-CMD createAccount_v2 arg1 arg2 arg3 arg4 arg5 arg6 arg7" />
+
+	<GridConfiguration propname="mainclusterip" propval="" />
+
+	<GridConfiguration propname="zac-deployment" propval="enabled" />
+	<GridConfiguration propname="max-db" propval="700" />
+
+	<GridConfiguration propname="dbcluster_specific_features_enabled"
+		propval="false" />
+	<GridConfiguration propname="dont-flush-redis" propval="true" />
+	<GridConfiguration propname="redis_category_feature_enabled" propval="v2" />
+	<GridConfiguration propname="max-concurrent-moveds-dest" propval="10" />
+
+	<GridConfiguration propname="restricted-roles" propval="" />
+	<GridConfiguration propname="db-management" propval="local" />
+
+	<GridConfiguration propname="properties-propagation-watcher-status"
+		propval="TRUE" />
 
 </provisioning-configurations>

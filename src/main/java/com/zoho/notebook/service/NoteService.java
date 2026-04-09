@@ -52,7 +52,7 @@ public class NoteService {
     }
 
     public List<NoteModel> getNotesByNotebookId(long notebookId) throws Exception {
-        return noteDao.getNotesByNotebookId(notebookId, UserSessionContext.getTimeZone());
+        return noteDao.getNotesByNotebookId(notebookId, UserSessionContext.getTimezone());
     }
 
     public NoteModel getNoteById(long notebookId, long noteId) throws Exception {

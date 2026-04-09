@@ -41,7 +41,7 @@ public class UserPhoneDao {
         return d.getRow(TableName.UserPhone.name()) != null;
     }
 
-    public List<UserPhoneModel> getPhoneDetailsByUserId(Long userId, String userTimeZone) throws Exception {
+    public List<UserPhoneModel> getPhoneDetailsByUserId(Long userId, String userTimezone) throws Exception {
         List<UserPhoneModel> phones = new ArrayList<>();
 
         SelectQueryImpl q = new SelectQueryImpl(new Table(TableName.UserPhone.name()));
@@ -71,8 +71,8 @@ public class UserPhoneDao {
                     phone.setCountryCode(null);
                 }
                 phone.setPrimary((Boolean) ds.getValue("IS_PRIMARY"));
-                phone.setCreatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimeZone));
-                phone.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimeZone));
+                phone.setCreatedAt(FrequentlyUsedMethods.formatMsToTimezone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimezone));
+                phone.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimezone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimezone));
                 phones.add(phone);
             }
         } finally {

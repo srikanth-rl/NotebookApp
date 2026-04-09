@@ -20,6 +20,7 @@ import com.zoho.notebook.model.UserModel;
 import com.zoho.notebook.util.FrequentlyUsedMethods;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 public class UserDao {
 
@@ -29,7 +30,7 @@ public class UserDao {
         Row r = new Row(TableName.User.name());
         r.set("DISPLAY_NAME", user.getDisplayName());
         r.set("STATUS",       UserStatus.PENDING.name());
-        r.set("TIMEZONE",     user.getTimeZone() != null ? user.getTimeZone() : "UTC");
+        r.set("TIMEZONE",     user.getTimezone() != null ? user.getTimezone() : "UTC");
         r.set("CREATED_AT",   now);
         r.set("UPDATED_AT",   now);
 
@@ -95,7 +96,7 @@ public class UserDao {
         UserModel user = new UserModel();
         user.setId(((Number) ds.getValue("ID")).longValue());
         user.setDisplayName((String) ds.getValue("DISPLAY_NAME"));
-        user.setTimeZone((String) ds.getValue("TIMEZONE"));
+        user.setTimezone((String) ds.getValue("TIMEZONE"));
         return user;
     }
 
@@ -120,9 +121,9 @@ public class UserDao {
             if (statusStr != null) {
                 user.setStatus(UserStatus.valueOf(statusStr).name());
             }
-            String userTimeZone = user.getTimeZone();
-            user.setCreatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimeZone));
-            user.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimeZone));
+            String userTimezone = user.getTimezone();
+            user.setCreatedAt(FrequentlyUsedMethods.formatMsToTimezone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimezone));
+            user.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimezone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimezone));
             return user;
         } finally {
             conn.close();
@@ -146,5 +147,39 @@ public class UserDao {
         q.setCriteria(new Criteria(new Column(TableName.User.name(), "ID"), userId, QueryConstants.EQUAL));
         DataAccess.update(q);
         return true;
+    }
+
+    public boolean userExistsById(long userId) throws Exception {
+        SelectQueryImpl q = new SelectQueryImpl(new Table(TableName.User.name(), "u"));
+        q.addSelectColumn(new Column("u", "ID"));
+        q.setCriteria(new Criteria(new Column("u", "ID"), userId, QueryConstants.EQUAL));
+
+        RelationalAPI api = RelationalAPI.getInstance();
+        Connection conn = api.getConnection();
+        try (DataSet ds = api.executeQuery(q, conn)) {
+            return ds.next();
+        } finally {
+            conn.close();
+        }
+    }
+
+    public boolean insertUserWithZuid(long zuid, String displayName, String timeZone) throws Exception {
+        long now = System.currentTimeMillis();
+
+        RelationalAPI api = RelationalAPI.getInstance();
+        Connection conn = api.getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO User (ID, DISPLAY_NAME, STATUS, TIMEZONE, CREATED_AT, UPDATED_AT) VALUES (?, ?, ?, ?, ?, ?)")) {
+            ps.setLong(1, zuid);
+            ps.setString(2, displayName != null ? displayName : "User");
+            ps.setString(3, UserStatus.VERIFIED.name());
+            ps.setString(4, timeZone != null ? timeZone : "UTC");
+            ps.setLong(5, now);
+            ps.setLong(6, now);
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } finally {
+            conn.close();
+        }
     }
 }

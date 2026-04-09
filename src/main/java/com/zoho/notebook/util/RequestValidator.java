@@ -14,7 +14,7 @@ public class RequestValidator {
         return FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getDisplayName())
             && FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getEmail())
             && FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getPassword())
-            && FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getTimeZone());
+            && FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getTimezone());
     }
 
     public static boolean validateLogin(UserDtoRequest req) {
@@ -34,7 +34,7 @@ public class RequestValidator {
         if (req == null)
         	return false;
         return FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getDisplayName())
-            || FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getTimeZone());
+            || FrequentlyUsedMethods.isNotNullAndNotEmpty(req.getTimezone());
     }
     
         

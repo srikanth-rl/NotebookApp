@@ -50,7 +50,7 @@ public class NotebookDao {
         return id != null ? ((Number) id).longValue() : null;
     }
 
-    public List<NotebookModel> getAllNotebooksByOwner(long ownerId, OwnerType ownerType, String userTimeZone) throws Exception {
+    public List<NotebookModel> getAllNotebooksByOwner(long ownerId, OwnerType ownerType, String userTimezone) throws Exception {
         SelectQueryImpl q = new SelectQueryImpl(new Table(TableName.Notebook.name()));
         q.addSelectColumn(new Column(TableName.Notebook.name(), "*"));
         Criteria c = new Criteria(new Column(TableName.Notebook.name(), "OWNER_ID"),  ownerId,          QueryConstants.EQUAL);
@@ -63,7 +63,7 @@ public class NotebookDao {
         Connection conn = api.getConnection();
         try (DataSet ds = api.executeQuery(q, conn)) {
             while (ds.next()) {
-                list.add(setAndGetNotebookFullDetails(ds, userTimeZone));
+                list.add(setAndGetNotebookFullDetails(ds, userTimezone));
             }
         } finally {
             conn.close();
@@ -112,7 +112,7 @@ public class NotebookDao {
         return true;
     }
 
-    private NotebookModel setAndGetNotebookFullDetails(DataSet ds, String userTimeZone) throws Exception {
+    private NotebookModel setAndGetNotebookFullDetails(DataSet ds, String userTimezone) throws Exception {
         NotebookModel nb = new NotebookModel();
         nb.setId(((Number) ds.getValue("ID")).longValue());
         nb.setTitle((String) ds.getValue("TITLE"));
@@ -120,8 +120,8 @@ public class NotebookDao {
         nb.setOwnerId(((Number) ds.getValue("OWNER_ID")).longValue());
         nb.setCreatedBy(((Number) ds.getValue("CREATED_BY")).longValue());
         nb.setUpdatedBy(((Number) ds.getValue("UPDATED_BY")).longValue());
-        nb.setCreatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimeZone));
-        nb.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimeZone));
+        nb.setCreatedAt(FrequentlyUsedMethods.formatMsToTimezone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimezone));
+        nb.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimezone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimezone));
         return nb;
     }
 }

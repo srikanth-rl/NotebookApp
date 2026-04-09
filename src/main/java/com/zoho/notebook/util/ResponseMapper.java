@@ -56,7 +56,7 @@ public class ResponseMapper {
         UserDtoResponse response = new UserDtoResponse();
         response.setDisplayName(user.getDisplayName());
         response.setStatus(user.getStatus());
-        response.setTimeZone(user.getTimeZone());
+        response.setTimezone(user.getTimezone());
         response.setCreatedAt(user.getCreatedAt());
         response.setUpdatedAt(user.getUpdatedAt());
 

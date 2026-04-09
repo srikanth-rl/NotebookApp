@@ -1,11 +1,15 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<security xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="security.xsd">
-    <properties>
-        <property name="csrf.cookie.name" value="_csrfcoo" />
-        <property name="csrf.param.name" value="_csrfparam" />
-        <property name="service.name" value="NoteBook" />
-        
-        <property name="use.iam" value="false" />
-        <property name="use.iam.login" value="false" />
-    </properties>
+<?xml version="1.0" encoding="UTF-8"?>
+<security xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="security.xsd">
+	<properties>
+		<property name="csrf.cookie.name" value="_csrfcoo" />
+		<property name="csrf.param.name" value="_csrfparam" />
+		<property name="service.name" value="Notebook" />
+
+		<property name="is.zuid" value="false" />
+		<property name="use.iam" value="true" />
+		<property name="use.iam.login" value="true" />
+		<property name="com.adventnet.iam.internal.server" value="https://sri-24601.csez.zohocorpin.com:9052" />
+
+	</properties>
 </security>

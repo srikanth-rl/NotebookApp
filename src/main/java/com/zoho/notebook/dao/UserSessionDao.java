@@ -72,7 +72,7 @@ public class UserSessionDao {
                 UserModel user = new UserModel();
                 user.setId(((Number) ds.getValue("ID")).longValue());
                 user.setDisplayName((String) ds.getValue("DISPLAY_NAME"));
-                user.setTimeZone((String) ds.getValue("TIMEZONE"));
+                user.setTimezone((String) ds.getValue("TIMEZONE"));
                 return user;
             }
         } finally {

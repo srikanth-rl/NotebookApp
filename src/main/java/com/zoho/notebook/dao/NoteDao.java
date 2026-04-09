@@ -50,7 +50,7 @@ public class NoteDao {
         return id != null ? ((Number) id).longValue() : null;
     }
 
-    public List<NoteModel> getNotesByNotebookId(long notebookId, String userTimeZone) throws Exception {
+    public List<NoteModel> getNotesByNotebookId(long notebookId, String userTimezone) throws Exception {
         SelectQueryImpl q = new SelectQueryImpl(new Table(TableName.Note.name()));
         q.addSelectColumn(new Column(TableName.Note.name(), "*"));
         q.setCriteria(new Criteria(new Column(TableName.Note.name(), "NOTEBOOK_ID"), notebookId, QueryConstants.EQUAL));
@@ -63,7 +63,7 @@ public class NoteDao {
         Connection conn = api.getConnection();
         try (DataSet ds = api.executeQuery(q, conn)) {
             while (ds.next()) {
-                list.add(mapToNoteModel(ds, userTimeZone));
+                list.add(mapToNoteModel(ds, userTimezone));
             }
         } finally {
             conn.close();
@@ -112,18 +112,18 @@ public class NoteDao {
         return true;
     }
 
-    private NoteModel mapToNoteModel(DataSet ds, String userTimeZone) throws Exception {
+    private NoteModel mapToNoteModel(DataSet ds, String userTimezone) throws Exception {
         NoteModel note = new NoteModel();
         note.setId(((Number) ds.getValue("ID")).longValue());
         note.setNotebookId(((Number) ds.getValue("NOTEBOOK_ID")).longValue());
         note.setTitle((String) ds.getValue("TITLE"));
         note.setContent((String) ds.getValue("CONTENT"));
-        note.setPinned((Boolean) ds.getValue("IS_PINNED")); // BOOLEAN in data-dict → Boolean from JDBC
+        note.setPinned((Boolean) ds.getValue("IS_PINNED"));
         note.setCreatedBy(((Number) ds.getValue("CREATED_BY")).longValue());
         note.setUpdatedBy(((Number) ds.getValue("UPDATED_BY")).longValue());
-        if (userTimeZone != null) {
-            note.setCreatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimeZone));
-            note.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimeZone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimeZone));
+        if (userTimezone != null) {
+            note.setCreatedAt(FrequentlyUsedMethods.formatMsToTimezone(((Number) ds.getValue("CREATED_AT")).longValue(), userTimezone));
+            note.setUpdatedAt(FrequentlyUsedMethods.formatMsToTimezone(((Number) ds.getValue("UPDATED_AT")).longValue(), userTimezone));
         }
         return note;
     }

@@ -1,5 +1,7 @@
 package com.zoho.notebook.service;
 
+import com.adventnet.collaboration.Collaboration;
+import com.adventnet.mfw.bean.BeanUtil;
 import com.adventnet.persistence.DataAccess;
 import javax.transaction.TransactionManager;
 
@@ -16,7 +18,7 @@ import java.util.logging.Logger;
 public class NotebookService {
 
     private final NotebookDao notebookDao = new NotebookDao();
-    private static final LRUCacheMap<Long, NotebookModel> notebookCache = new LRUCacheMap<>(500); // 500 notebooks stored in memory for the user
+    private static final LRUCacheMap<Long, NotebookModel> notebookCache = new LRUCacheMap<>(500);
     private static final Logger LOGGER = Logger.getLogger(NotebookService.class.getName());
 
     public boolean createNotebook(NotebookDtoRequest req) throws Exception {
@@ -38,9 +40,20 @@ public class NotebookService {
             Long generatedNbId = notebookDao.insert(nb);
 
             if (generatedNbId != null && generatedNbId > 0) {
+                // Reserve dataspace for this notebook after DB inserts
+                String dataspaceName = "notebook_" + generatedNbId; // notebook_{id}
+                Collaboration collaboration = (Collaboration) BeanUtil.lookup("CollaborationBean");
+                if (!collaboration.dataSpaceExists(dataspaceName)) {
+                    collaboration.reserveDataSpace(dataspaceName);
+                    LOGGER.info("Dataspace reserved: " + dataspaceName);
+                } else {
+                    LOGGER.warning("Dataspace already exists: " + dataspaceName);
+                }
+
                 txMgr.commit();
                 created = true;
-                notebookCache.put(generatedNbId, nb); // put an entry in cache memory
+                nb.setId(generatedNbId);
+                notebookCache.put(generatedNbId, nb);
                 LOGGER.info("Notebook created successfully. notebookId=" + generatedNbId + ", userId=" + userId);
             } else {
                 txMgr.rollback();
@@ -55,7 +68,7 @@ public class NotebookService {
     }
 
     public NotebookModel getNotebookById(long notebookId) throws Exception {
-        NotebookModel cachedNb = notebookCache.get(notebookId); // try to get notebook details from cache memory
+        NotebookModel cachedNb = notebookCache.get(notebookId);
         if (cachedNb != null) {
             return cachedNb;
         }
@@ -64,7 +77,7 @@ public class NotebookService {
     }
 
     public List<NotebookModel> getUserNotebooks() throws Exception {
-        return notebookDao.getAllNotebooksByOwner(UserSessionContext.getId(), OwnerType.USER, UserSessionContext.getTimeZone());
+        return notebookDao.getAllNotebooksByOwner(UserSessionContext.getId(), OwnerType.USER, UserSessionContext.getTimezone());
     }
 
     public boolean updateNotebook(long notebookId, NotebookDtoRequest req) throws Exception {
@@ -88,7 +101,6 @@ public class NotebookService {
 
             if (updated) {
                 txMgr.commit();
-                // Cache Invalidation: Removing old data so next GET fetches updated Data
                 notebookCache.remove(notebookId);
                 LOGGER.info("Notebook updated successfully. notebookId=" + notebookId + ", userId=" + userId);
             } else {
@@ -122,8 +134,13 @@ public class NotebookService {
             deleted = notebookDao.delete(notebookId);
 
             if (deleted) {
+                // Unlink dataspace after deletion of notebook in DB
+                String dataspaceName = "notebook_" + notebookId;
+                Collaboration collaboration = (Collaboration) BeanUtil.lookup("CollaborationBean");
+                collaboration.unlinkDataSpace(dataspaceName);
+                LOGGER.info("Dataspace unlinked: " + dataspaceName);
+
                 txMgr.commit();
-                // Removing from notebook cache memory permanently
                 notebookCache.remove(notebookId);
                 LOGGER.info("Notebook deleted successfully. notebookId=" + notebookId + ", userId=" + userId);
             } else {

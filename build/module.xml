@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!-- $Id$ -->
 <modules>
-    <Module moduleorder="10"   modulename="Persistence"/>
-    <Module moduleorder="80"   modulename="Scheduler"/>
-    <Module moduleorder="95"   modulename="SAS_TEMP"/>
-    <Module moduleorder="100"  modulename="SAS"/>
-    <Module moduleorder="1000" modulename="NOTEBOOK_MICKEY"/>
+	<Module moduleorder="10" modulename="Persistence" />
+	<Module moduleorder="80" modulename="Scheduler" />
+	<Module moduleorder="95" modulename="SAS_TEMP" />
+	<Module moduleorder="100" modulename="SAS" />
+	<Module moduleorder="1000" modulename="NOTEBOOK_MICKEY" />
 </modules>

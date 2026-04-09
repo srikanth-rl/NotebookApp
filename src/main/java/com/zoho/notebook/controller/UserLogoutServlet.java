@@ -13,25 +13,18 @@ import javax.servlet.http.HttpServletResponse;
 public class UserLogoutServlet extends BaseServlet {
 	
 	private static final long serialVersionUID = 1L;
-	private final UserSessionService userSessionService =  new UserSessionService();
+//	private final UserSessionService userSessionService =  new UserSessionService();
 	private static final Logger LOGGER = Logger.getLogger(UserLogoutServlet.class.getName());
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     	try {
-            String sessionId = FrequentlyUsedMethods.getSessionCookieValue(req);
-            if (sessionId != null) {
-                
-                // if sessionId deleted from both Database and the Cache
-                if (userSessionService.deleteSession(sessionId)) { 
-                    
-                    // Reset an empty Cookie value in existing session and (set timeout to 0)
-                    FrequentlyUsedMethods.setSessionCookieValue(resp, "", 0);
-                }
-            }
-            
-            LOGGER.info("Logged out successfully");
-            sendSuccess(resp, "Logged out successfully");
+	    	String serviceName = System.getProperty("service.name");
+	    	String iamLogoutUrl = com.adventnet.iam.IAMUtil.getLogoutURL(serviceName, "/");
+	        req.getSession().invalidate();
+	            
+	        LOGGER.info("Logged out successfully");
+	        resp.sendRedirect(iamLogoutUrl);
             
         } catch (Exception e) {
             sendServerError(resp, e);

@@ -27,7 +27,7 @@ public class UserSessionContext {
         return (userContext.get() != null) ? (String) userContext.get().get("displayName") : null;
     }
 
-    public static String getTimeZone() {
+    public static String getTimezone() {
         return (userContext.get() != null) ? (String) userContext.get().get("timeZone") : null;
     }
     

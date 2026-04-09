@@ -42,11 +42,11 @@ public class UserDtoRequest {
         this.displayName = displayName;
     }
 
-    public String getTimeZone() {
+    public String getTimezone() {
         return timeZone;
     }
 
-    public void setTimeZone(String timeZone) {
+    public void setTimezone(String timeZone) {
         this.timeZone = timeZone;
     }
 

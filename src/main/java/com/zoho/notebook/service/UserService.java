@@ -27,6 +27,23 @@ public class UserService {
     private final UserPasswordDao userPasswordDao = new UserPasswordDao();
 
     private static final Logger LOGGER = Logger.getLogger(UserService.class.getName());
+    
+    public void ensureIamUserInLocalDb(long zuid, String displayName, String timeZone) throws Exception {
+        if (userDao.userExistsById(zuid)) {
+            return; 
+        }
+
+        TransactionManager txMgr = DataAccess.getTransactionManager();
+        try {
+            txMgr.begin();
+            userDao.insertUserWithZuid(zuid, displayName, timeZone);
+            txMgr.commit();
+            LOGGER.info("IAM user inserted in local DB. ZUID=" + zuid);
+        } catch (Exception e) {
+            txMgr.rollback();
+            LOGGER.severe("Failed to insert IAM user. ZUID=" + zuid + " : " + e.getMessage());
+        }
+    }
 
     public boolean register(UserDtoRequest request) throws Exception {
         TransactionManager txMgr = DataAccess.getTransactionManager();
@@ -39,7 +56,7 @@ public class UserService {
             String pwd          = request.getPassword();
             String phone        = request.getPhone();
             String displayName  = request.getDisplayName();
-            String userTimeZone = request.getTimeZone();
+            String userTimezone = request.getTimezone();
 
             if (!FrequentlyUsedMethods.isValidEmail(email)) {
                 throw new Exception("Invalid Email.");
@@ -51,7 +68,7 @@ public class UserService {
 
             UserModel user = new UserModel();
             user.setDisplayName(displayName);
-            user.setTimeZone(userTimeZone);
+            user.setTimezone(userTimezone);
 
             Long userId = userDao.insertUser(user);
 
@@ -134,11 +151,11 @@ public class UserService {
     }
 
     public List<UserEmailModel> getEmails() throws Exception {
-        return userEmailDao.getEmailDetailsByUserId(UserSessionContext.getId(), UserSessionContext.getTimeZone());
+        return userEmailDao.getEmailDetailsByUserId(UserSessionContext.getId(), UserSessionContext.getTimezone());
     }
 
     public List<UserPhoneModel> getPhones() throws Exception {
-        return userPhoneDao.getPhoneDetailsByUserId(UserSessionContext.getId(), UserSessionContext.getTimeZone());
+        return userPhoneDao.getPhoneDetailsByUserId(UserSessionContext.getId(), UserSessionContext.getTimezone());
     }
 
     public boolean updateUserProfileDetails(UserDtoRequest request) throws Exception {
@@ -148,19 +165,18 @@ public class UserService {
         try {
             txMgr.begin();
 
-            String newName      = request.getDisplayName();
-            String newTimeZone  = request.getTimeZone();
-
             Long   userId          = UserSessionContext.getId();
+            String newName         = request.getDisplayName();
+            String newTimezone     = request.getTimezone();
             String currentName     = UserSessionContext.getDisplayName();
-            String currentTimeZone = UserSessionContext.getTimeZone();
+            String currentTimezone = UserSessionContext.getTimezone();
 
             boolean isNameChanged     = newName     != null && !newName.equals(currentName);
-            boolean isTimeZoneChanged = newTimeZone != null && !newTimeZone.equals(currentTimeZone);
-
-            if (isNameChanged || isTimeZoneChanged) {
+            boolean isTimezoneChanged = newTimezone != null && !newTimezone.equals(currentTimezone);
+            LOGGER.info("Profile update - isNameChanged: " + isNameChanged + ", isTimezoneChanged: " + isTimezoneChanged + "nameToUpdate: " );
+            if (isNameChanged || isTimezoneChanged) {
                 String nameToUpdate = newName     != null ? newName     : currentName;
-                String zoneToUpdate = newTimeZone != null ? newTimeZone : currentTimeZone;
+                String zoneToUpdate = newTimezone != null ? newTimezone : currentTimezone;
 
                 updated = userDao.updateUserProfile(userId, nameToUpdate, zoneToUpdate);
 

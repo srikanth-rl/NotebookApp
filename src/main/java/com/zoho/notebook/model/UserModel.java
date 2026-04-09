@@ -2,61 +2,60 @@ package com.zoho.notebook.model;
 
 public class UserModel {
 
-	private Long id;
-	private String displayName;
-	private String status;
-	private String createdAt;
-	private String updatedAt;
-	private String timeZone;
-	
-	public UserModel() {}
+    private Long id;           // ZUID from IAM
+    private String displayName;
+    private String status;
+    private String createdAt;
+    private String updatedAt;
+    private String timeZone;
 
-	public Long getId() {
-		return id;
-	}
+    public UserModel() {}
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public String getDisplayName() {
-		return displayName;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
-	}
+    public String getDisplayName() {
+        return displayName;
+    }
 
-	public String getStatus() {
-		return status;
-	}
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
 
-	public void setStatus(String status) {
-		this.status = status;
-	}
+    public String getStatus() {
+        return status;
+    }
 
-	public String getCreatedAt() {
-		return createdAt;
-	}
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-	public void setCreatedAt(String createdAt) {
-		this.createdAt = createdAt;
-	}
+    public String getCreatedAt() {
+        return createdAt;
+    }
 
-	public String getUpdatedAt() {
-		return updatedAt;
-	}
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	public void setUpdatedAt(String updatedAt) {
-		this.updatedAt = updatedAt;
-	}
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
 
-	public String getTimeZone() {
-		return timeZone;
-	}
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
-	public void setTimeZone(String timeZone) {
-		this.timeZone = timeZone;
-	}
+    public String getTimezone() {
+        return timeZone;
+    }
 
+    public void setTimezone(String timeZone) {
+        this.timeZone = timeZone;
+    }
 }

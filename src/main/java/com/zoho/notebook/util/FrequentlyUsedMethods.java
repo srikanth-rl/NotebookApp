@@ -49,12 +49,12 @@ public class FrequentlyUsedMethods {
         resp.addCookie(cookie);
     }
     
-    public static String formatMsToTimeZone(Long ms, String userTimeZone) {
+    public static String formatMsToTimezone(Long ms, String userTimezone) {
         if (ms == null) 
         	return null;
         try {
             return Instant.ofEpochMilli(ms)
-		                    .atZone(ZoneId.of(userTimeZone))
+		                    .atZone(ZoneId.of(userTimezone))
 		                    .format(DATE_FORMATTER);
 	        } catch (Exception e) {
             return Instant.ofEpochMilli(ms).toString(); // Fallback to UTC time in ISO format

@@ -1,58 +1,57 @@
 package com.zoho.notebook.filter;
 
-import com.zoho.notebook.model.UserModel;
+import com.adventnet.iam.IAMUtil;
+import com.adventnet.iam.User;
 import com.zoho.notebook.context.UserSessionContext;
-import com.zoho.notebook.service.UserSessionService;
-import com.zoho.notebook.util.FrequentlyUsedMethods;
-
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
+import com.zoho.notebook.service.UserService;
 
 import java.io.IOException;
+import javax.servlet.*;
 import java.util.logging.Logger;
 
 public class ThreadLocalFilter implements Filter {
 
     private static final Logger LOGGER = Logger.getLogger(ThreadLocalFilter.class.getName());
-    private final UserSessionService sessionService = new UserSessionService();
+    private final UserService userService = new UserService();
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        HttpServletRequest req = (HttpServletRequest) request;
-        String uri = req.getRequestURI();
-        UserModel sessionUser = null;
+        try {
+            User iamUser = IAMUtil.getCurrentUser();
 
-        String sessionId = FrequentlyUsedMethods.getSessionCookieValue(req);
-        if (sessionId != null) {
-            try {
-                sessionUser = sessionService.getSessionUser(sessionId);
-                if (sessionUser == null) {
-                    sessionUser = sessionService.validateSessionAndGetUser(sessionId);
+            if (iamUser != null) {
+                long zuid = iamUser.getZUID();
+
+                // Validate IAM user exists in local DB
+                try {
+                    userService.ensureIamUserInLocalDb(
+                        zuid,
+                        iamUser.getDisplayName(),
+                        iamUser.getTimezone()
+                    );
+                } catch (Exception e) {
+                    LOGGER.severe("Failed to insert IAM user in local DB: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                LOGGER.warning("ThreadLocalFilter: session lookup failed for URI: " + uri);
-            }
-        }
 
-        if (sessionUser != null) {
-            try {
                 UserSessionContext.set(
-                    sessionUser.getId(),
-                    sessionUser.getDisplayName(),
-                    sessionUser.getTimeZone(),
-                    req.getRemoteAddr()
+                    zuid,
+                    iamUser.getDisplayName(),
+                    iamUser.getTimezone(),
+                    request.getRemoteAddr()
                 );
-                LOGGER.info("ThreadLocal Created for User [" + sessionUser.getDisplayName() + "] for URI: " + uri);
-                chain.doFilter(request, response);
-            } finally {
-                UserSessionContext.remove();
-                LOGGER.info("ThreadLocal context cleared for URI: " + uri);
+
+                LOGGER.info("ThreadLocal context initialized for ZUID: " + zuid);
+            } else {
+                LOGGER.warning("IAMUtil.getCurrentUser() returned null!\n IAM Ticket - " + IAMUtil.getCurrentTicket());
             }
-        } else {
-            LOGGER.fine("ThreadLocal BYPASS: No authenticated user found for URI: " + uri);
+
             chain.doFilter(request, response);
+
+        } finally {
+            // Always clear ThreadLocal to avoid memory leaks across requests
+            UserSessionContext.remove();
         }
     }
 }
